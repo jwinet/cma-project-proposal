@@ -14,8 +14,8 @@ quarto render Readme.md --to pdf
 |:---------------|:---------------------------------------- |
 | **Data:**      | What type of data are you focussing on?  |
 | **Title:**     | The title of your project                |
-| **Student 1:** | Name of Student 1                        |
-| **Student 2:** | Name of Student 2                        |
+| **Student 1:** | Judith Winet                             |
+| **Student 2:** | Rodrigo Nogueira Silva                   |
 
 ## Abstract 
 <!-- (50-60 words) -->
