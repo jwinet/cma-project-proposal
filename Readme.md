@@ -23,6 +23,10 @@ quarto render Readme.md --to pdf
 ## Research Questions
 <!-- (50-60 words) -->
 
+- Can stops be efficiently detected in movement data from different providers?
+- How well do modelled stops match the real location of these stops for movement trajectories of different providers?
+
+
 ## Results / products
 <!-- (50-100 words) -->
 <!-- What do you expect, anticipate? -->
@@ -30,6 +34,10 @@ quarto render Readme.md --to pdf
 ## Data
 <!-- (100-150 words) -->
 <!-- What data will you use? Will you require additional context data? Where do you get this data from? Do you already have all the data? -->
+
+For this semester project, we will record our movements through a Vitaparcours. Each of us will complete one course, recording the movements with two different apps and mark the stops on a map. One person will use the PosmosProject and SwissTopo apps and another will use the Strava and SwissTopo apps. 
+We will not need any additional data as we only record our own movements through the course. But it might be helpful to also look up the stop locations online so that we can compare them with the exact location data. This data can be found on the website of Zurich vitaparcours.
+We do not have all the movement data yet but we will record this in the week between the 18.05.2026 and the 24.05.2026.
 
 ## Analytical concepts
 <!-- (100-200 words) -->
