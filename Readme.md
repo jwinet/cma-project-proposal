@@ -31,26 +31,26 @@ This project investigates the effectiveness of the Laube and Purves (2011) segme
 ## Results / products
 <!-- (50-100 words) -->
 <!-- What do you expect, anticipate? -->
-We expect to be able to detect stops using movement data from all the different providers. However, due to noise and measurement uncertainties in connection with the environment, there may be some discrepancies. The stops will probably not be modelled in the exact same locations for the two providers per trail, but we expect only minor differences. 
-
+We expect to be able to detect stops using movement data from all the different providers. However, due to noise and measurement uncertainties in connection with the environment, there may be some discrepancies. The stops will probably not be modelled in the exact same locations for the two providers per trail, but we expect only minor differences.  
 
 ## Data
 <!-- (100-150 words) -->
 <!-- What data will you use? Will you require additional context data? Where do you get this data from? Do you already have all the data? -->
-For this semester project, we will record our movements through a Vitaparcours. Each of us will complete one course, recording the movements with two different apps and mark the stops on a map. One person will use the PosmosProject and SwissTopo apps and another will use the Strava and SwissTopo apps. 
+For this semester project, we will record our movements through a Vitaparcours. Each of us will complete one course, recording the movements with two different apps and mark the stops on a map. One person will use the PosmosProject and SwissTopo apps and another will use the Strava and SwissTopo apps.
 
 We will not need any additional data as we only record our own movements through the course. But it might be helpful to also look up the stop locations online so that we can compare them with the exact location data. This data can be found on the website of Zurich Vitaparcours.
+
 We do not have all the movement data yet but we will record this in the week between the 18.05.2026 and the 24.05.2026.
 
 ## Analytical concepts
 <!-- (100-200 words) -->
 <!-- Which analytical concepts will you use? What conceptual movement spaces and respective modelling approaches of trajectories will you be using? What additional spatial analysis methods will you be using? -->
-For this project, we will do a stop detection analysis using a constrained Euclidean conceptual movement space, defined more or less by the Vitaparcours trail. For trajectory modelling, we will implement the segmentation algorithm approach described in Laube and Purves (2011), focusing on identifying static events in the movement data. To compare the static movements with the real Vitaparcours stops, we will record separately a GPS signal with the coordinates on every stop. Additionally, we will compare the number of stop detections and accuracies of the static events of the tracks to the actual GPS data of the stops. To compare the GPS signal at a stop with an actual point instead of just slow/static walking around, we may also have to use some additional spatial analysis methods like special clustering (e.g. calculating the weighted mean centre).
+For this project, we will do a stop detection analysis using a constrained Euclidean conceptual movement space, defined more or less by the Vitaparcours trail. For trajectory modelling, we will implement the segmentation algorithm approach described in Laube and Purves (2011), focusing on identifying static events in the movement data. To compare the static movements with the real Vitaparcours stops, we will record separately a GPS signal with the coordinates on every stop. Additionally, we will compare the number of stop detections and accuracies of the static events of the tracks to the actual GPS data of the stops. To compare the GPS signal at a stop with an actual point instead of just slow/static walking around, we may also have to use some additional spatial analysis methods like special clustering (e.g. calculating the weighted mean). 
 
 ## R concepts
 <!-- (50-100 words) -->
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
-We will mainly use the packages readr, sf and dplyr as well as tmap and ggplot2 for visualisation. For clustering our static event to a single point we may use dbscan and for the weighted mean the spatstat.geom package. 
+We will mainly use the packages readr, sf and dplyr as well as tmap and ggplot2 for visualisation. For clustering our static event to a single point we may use dbscan and for the weighted mean the spatstat.geom package, but as we have no experience on working with these spatial analysis methods on RStudio, the packages can still change. 
 
 ## Risk analysis
 <!-- (100-150 words) -->
