@@ -55,14 +55,15 @@ We will mainly use the packages readr, sf and dplyr as well as tmap and ggplot2 
 ## Risk analysis
 <!-- (100-150 words) -->
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
-The biggest challenges are mainly GPS related issues, as Vitaparcours tracks are often located in forests, where the accuracy of both the movement data and the GPS signal for tracking the stops may be affected by uncertainties. Tiredness could also lead to extended pause times or slower movement throughout the track, which could be falsely detected as a static event. These challenges can be resolved by adjusting thresholds and conducting a exact analysis of the raw data. Therefore, plan B will probably be to accept lower level of accuracy. 
+The biggest challenges are mainly GPS related issues, as Vitaparcours tracks are often located in forests, where the accuracy of both the movement data and the GPS signal for tracking the stops may be affected by uncertainties. Tiredness could also lead to extended pause times or slower movement throughout the track, which could be falsely detected as a static event. These challenges can be resolved by adjusting thresholds and conducting a exact analysis of the raw data. Therefore, plan B will probably be to accept lower level of accuracy.
 
-Another potential challenge could be ensuring the data comparability between the three apps. We do not know yet whether the headers, units, etc. are the same and comparable. This can be solved with further data preparation, but it will require additional effort. 
-
+Another potential challenge could be ensuring the data comparability between the three apps. We do not know yet whether the headers, units, etc. are the same and comparable. This can be solved with further data preparation, but it will require additional effort.
 
 ## Questions? 
 <!-- (100-150 words) -->
 <!-- Which questions would you like to discuss at the coaching session? -->
--	What is the recommended spatial buffer distance when determining if a modelled stop matches a “ground truth” stop in a forest environment?
 -	How should we best handle the varying sampling frequencies between the different apps?
 -	Do we need to implement some pre-processing filters like e.g. smoothing?
+-	Do you have any clustering tips for RStudio? 
+-	Is it a good idea to calculate the weighted mean to have a single point on the static event or is there a better option? 
+-	What is the recommended spatial buffer distance when determining if a modelled stop matches a “ground truth” stop in a forest environment?
