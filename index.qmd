@@ -1,7 +1,7 @@
 ---
-title: The title of your Semesterproject
+title: Stop detection in Vitaparcours movement data using segmentation algorithms
 subtitle: A subtle subtitle
-author: Firstname1 Lastname1 and Firstname2 Lastname2
+author: Judith Winet and Rodrigo Nogueira Silva
 format:
   html:
     code-fold: true
