@@ -67,3 +67,7 @@ Another potential challenge could be ensuring the data comparability between the
 -	Do you have any clustering tips for RStudio? 
 -	Is it a good idea to calculate the weighted mean to have a single point on the static event or is there a better option? 
 -	What is the recommended spatial buffer distance when determining if a modelled stop matches a “ground truth” stop in a forest environment?
+
+
+
+hello hello
