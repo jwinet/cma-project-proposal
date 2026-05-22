@@ -1,6 +1,8 @@
-library(leaflet)
-library(sf)
-library(dplyr)
+library("leaflet")
+library("readr")
+library("sf")
+library("dplyr")
+library("lubridate")
 
 # Context Data forest
 
@@ -27,17 +29,31 @@ bbox <- st_bbox(c(xmin = 2694800.94, xmax = 2695780.92,
 wald_selection_wollerau <- st_crop(wald, bbox)
 st_write(wald_selection_wollerau, dsn="datasets/wald_selection_wollerau.gpkg")
 
-plot(st_geometry(wald_selection_wollerau), col = "green")
+wald <- st_read("datasets/wald_selection_wollerau.gpkg")
 
-# Vitaparcours Data with Swisstopo
+# Vitaparcours Data
 
 ## Wollerau
 
 ### True location of posts
 
-Stations_Wollerau_20260521 <- st_read("datasets/Waypoint-2026-05-21_wollerau.gpx", layer = "waypoints")
+Stations_Wollerau_20260521_swisstopo <- st_read("datasets/Waypoint-2026-05-21_wollerau.gpx", layer = "waypoints")
+
+Stations_Wollerau_20260521_swisstopo <- st_transform(Stations_Wollerau_20260521_swisstopo, 2056)
 
 ### Tracked data
-Data_Wollerau_20260521 <- st_read("datasets/Vitaparcours_wollerau_20260521.gpx", layer = "track_points")
+Swisstopo_Wollerau_20260521 <- st_read("datasets/Vitaparcours_wollerau_20260521.gpx", layer = "track_points")
+
+Swisstopo_Wollerau_20260521 <- st_transform(Swisstopo_Wollerau_20260521, 2056)
+
+Posmo_Wollerau_20260521 <- read_delim("datasets/posmo_2026-05-21.csv", ",") |> 
+  st_as_sf(coords = c("lon_x","lat_y"), crs = 4326) |> 
+  mutate(datetime = with_tz(datetime, tzone = "Europe/Zurich")) |>
+  filter(
+    datetime>= as.POSIXct("2026-05-21 16:14:31", tz = "Europe/Zurich"),
+    datetime < as.POSIXct("2026-05-21 17:09:19", tz = "Europe/Zurich")
+  )
+
+Posmo_Wollerau_20260521 <- st_transform(Posmo_Wollerau_20260521, 2056)
 
 
