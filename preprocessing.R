@@ -28,3 +28,16 @@ wald_selection_wollerau <- st_crop(wald, bbox)
 st_write(wald_selection_wollerau, dsn="datasets/wald_selection_wollerau.gpkg")
 
 plot(st_geometry(wald_selection_wollerau), col = "green")
+
+# Vitaparcours Data with Swisstopo
+
+## Wollerau
+
+### True location of posts
+
+Stations_Wollerau_20260521 <- st_read("datasets/Waypoint-2026-05-21_wollerau.gpx", layer = "waypoints")
+
+### Tracked data
+Data_Wollerau_20260521 <- st_read("datasets/Vitaparcours_wollerau_20260521.gpx", layer = "track_points")
+
+
