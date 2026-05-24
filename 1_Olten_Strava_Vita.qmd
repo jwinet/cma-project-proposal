@@ -1,0 +1,348 @@
+---
+title: "Olten Vitaparcours STRAVA 1"
+format: 
+  html: default
+  typst: 
+    toc: true
+author: Rodrigo Nogueira Silva
+execute: 
+  warning: false
+  message: false
+  echo: false
+---
+
+
+```{r}
+library("readr")
+
+Vita <- read_delim("datasets/Vita_1/track_points.csv", ",")
+
+
+
+library(sf)
+
+Vita_sf <- st_as_sf(
+  Vita,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+library(ggplot2)
+
+ggplot(Vita_sf)+
+  geom_sf()+
+  geom_path(aes(X,Y))
+  
+
+```
+
+
+
+```{r}
+
+library(dplyr)
+distance_by_element <- function(later, now) {
+  as.numeric(
+    st_distance(later, now, by_element = TRUE)
+  )
+}
+
+
+route <- Vita_sf |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+
+route <- route |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = FALSE)
+    ) |>
+    ungroup()
+
+```
+
+
+
+
+```{r}
+
+threshold <- mean(route$stepMean, na.rm = TRUE)
+
+
+route <- route |>
+    mutate(move = stepMean > threshold)
+
+
+ggplot(route)+
+  geom_sf(aes(color=move))+
+  geom_path(aes(x = X, y = Y))
+
+
+route_move <- route |>
+    filter(!move)
+
+ggplot(route_move)+
+  geom_sf(aes(color=move))+
+  geom_path(aes(x = X, y = Y))
+
+```
+
+
+
+```{r}
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+route_id <- route |>
+    mutate(segment_id = rle_id(static))
+
+```
+
+
+
+```{r}
+
+
+library(tmap)
+tmap_mode("view")
+
+tm_shape(route_move) + 
+  tm_dots()
+
+route_line <- route_move |> 
+  summarise(do_union = FALSE) |> 
+  st_cast("LINESTRING")
+
+tmap_options(basemap.server = "OpenStreetMap")
+
+tm_shape(route_line) +
+  tm_lines() +
+  tm_shape(route_move) + 
+  tm_dots()
+
+
+```
+
+
+##Exercise B
+
+
+```{r}
+
+library(readr)
+
+library(dplyr)
+
+ped <- read_csv("pedestrian.csv")
+
+library(ggplot2)
+
+library(sf)
+
+
+ped_sf <- st_as_sf(ped, coords = c("E", "N"), crs = 2056, remove = FALSE)
+
+ggplot(ped,
+       aes(x = E,
+           y = N,
+           group = TrajID,
+           color = factor(TrajID))) +
+  geom_path() +
+  theme_minimal()
+
+
+library(SimilarityMeasures)
+
+help(package = "SimilarityMeasures")
+
+unique(ped$TrajID)
+
+t1 <- ped %>%
+  filter(TrajID == 1) %>%
+  select(E, N)
+
+t2 <- ped %>%
+  filter(TrajID == 2) %>%
+  select(E, N)
+
+t3 <- ped %>%
+  filter(TrajID == 3) %>%
+  select(E, N)
+
+t4 <- ped %>%
+  filter(TrajID == 4) %>%
+  select(E, N)
+
+t5 <- ped %>%
+  filter(TrajID == 5) %>%
+  select(E, N)
+
+t6 <- ped %>%
+  filter(TrajID == 6) %>%
+  select(E, N)
+
+t1 <- as.matrix(t1)
+t2 <- as.matrix(t2)
+t3 <- as.matrix(t3)
+t4 <- as.matrix(t4)
+t5 <- as.matrix(t5)
+t6 <- as.matrix(t6)
+
+
+```
+
+
+
+
+
+```{r}
+
+dtw_vals <- c(
+  DTW(t1, t2, pointSpacing=-1),
+  DTW(t1, t3, pointSpacing=-1),
+  DTW(t1, t4, pointSpacing=-1),
+  DTW(t1, t5, pointSpacing=-1),
+  DTW(t1, t6, pointSpacing=-1)
+)
+
+edit_vals <- c(
+  EditDist(t1, t2, pointDistance=20),
+  EditDist(t1, t3, pointDistance=20),
+  EditDist(t1, t4, pointDistance=20),
+  EditDist(t1, t5, pointDistance=20),
+  EditDist(t1, t6, pointDistance=20)
+)
+
+frechet_vals <- c(
+  Frechet(t1, t2, testLeash=-1),
+  Frechet(t1, t3, testLeash=-1),
+  Frechet(t1, t4, testLeash=-1),
+  Frechet(t1, t5, testLeash=-1),
+  Frechet(t1, t6, testLeash=-1)
+)
+
+lcss_vals <- c(
+  LCSS(t1, t2, pointDistance=100, errorMarg=50),
+  LCSS(t1, t3, pointDistance=100, errorMarg=50),
+  LCSS(t1, t4, pointDistance=100, errorMarg=50),
+  LCSS(t1, t5, pointDistance=100, errorMarg=50),
+  LCSS(t1, t6, pointDistance=100, errorMarg=50)
+)
+
+```
+
+
+
+
+
+```{r}
+
+
+dtw_df <- data.frame(
+  Trajectory = 2:6,
+  Similarity = dtw_vals
+)
+
+ggplot(dtw_df,
+       aes(x = factor(Trajectory),
+           y = Similarity)) +
+
+  geom_col() +
+
+  labs(
+    title = "DTW similarity to trajectory 1",
+    x = "Trajectory",
+    y = "DTW distance"
+  ) +
+
+  theme_minimal()
+
+
+```
+
+
+
+```{r}
+
+edit_df <- data.frame(
+  Trajectory = 2:6,
+  Similarity = edit_vals
+)
+
+ggplot(edit_df,
+       aes(x = factor(Trajectory),
+           y = Similarity)) +
+
+  geom_col() +
+
+  labs(
+    title = "Edit Distance similarity to trajectory 1",
+    x = "Trajectory",
+    y = "Edit Distance"
+  ) +
+
+  theme_minimal()
+
+
+```
+
+
+
+
+```{r}
+
+
+frechet_df <- data.frame(
+  Trajectory = 2:6,
+  Similarity = frechet_vals
+)
+
+ggplot(frechet_df,
+       aes(x = factor(Trajectory),
+           y = Similarity)) +
+
+  geom_col() +
+
+  labs(
+    title = "Frechet similarity to trajectory 1",
+    x = "Trajectory",
+    y = "Frechet distance"
+  ) +
+
+  theme_minimal()
+
+
+```
+
+
+
+```{r}
+
+lcss_df <- data.frame(
+  Trajectory = 2:6,
+  Similarity = lcss_vals
+)
+
+ggplot(lcss_df,
+       aes(x = factor(Trajectory),
+           y = Similarity)) +
+
+  geom_col() +
+
+  labs(
+    title = "LCSS similarity to trajectory 1",
+    x = "Trajectory",
+    y = "LCSS similarity"
+  ) +
+
+  theme_minimal()
+
+
+```
+
