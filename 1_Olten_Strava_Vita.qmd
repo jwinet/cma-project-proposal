@@ -82,10 +82,10 @@ ggplot(route)+
   geom_path(aes(x = X, y = Y))
 
 
-route_move <- route |>
+route_static <- route |>
     filter(!move)
 
-ggplot(route_move)+
+ggplot(route_static)+
   geom_sf(aes(color=move))+
   geom_path(aes(x = X, y = Y))
 
@@ -100,7 +100,7 @@ rle_id <- function(vec) {
 }
 
 route_id <- route |>
-    mutate(segment_id = rle_id(static))
+    mutate(segment_id = rle_id(move))
 
 ```
 
@@ -112,10 +112,10 @@ route_id <- route |>
 library(tmap)
 tmap_mode("view")
 
-tm_shape(route_move) + 
+tm_shape(route_static) + 
   tm_dots()
 
-route_line <- route_move |> 
+route_line <- route_static |> 
   summarise(do_union = FALSE) |> 
   st_cast("LINESTRING")
 
@@ -123,226 +123,8 @@ tmap_options(basemap.server = "OpenStreetMap")
 
 tm_shape(route_line) +
   tm_lines() +
-  tm_shape(route_move) + 
+  tm_shape(route_static) + 
   tm_dots()
 
 
 ```
-
-
-##Exercise B
-
-
-```{r}
-
-library(readr)
-
-library(dplyr)
-
-ped <- read_csv("pedestrian.csv")
-
-library(ggplot2)
-
-library(sf)
-
-
-ped_sf <- st_as_sf(ped, coords = c("E", "N"), crs = 2056, remove = FALSE)
-
-ggplot(ped,
-       aes(x = E,
-           y = N,
-           group = TrajID,
-           color = factor(TrajID))) +
-  geom_path() +
-  theme_minimal()
-
-
-library(SimilarityMeasures)
-
-help(package = "SimilarityMeasures")
-
-unique(ped$TrajID)
-
-t1 <- ped %>%
-  filter(TrajID == 1) %>%
-  select(E, N)
-
-t2 <- ped %>%
-  filter(TrajID == 2) %>%
-  select(E, N)
-
-t3 <- ped %>%
-  filter(TrajID == 3) %>%
-  select(E, N)
-
-t4 <- ped %>%
-  filter(TrajID == 4) %>%
-  select(E, N)
-
-t5 <- ped %>%
-  filter(TrajID == 5) %>%
-  select(E, N)
-
-t6 <- ped %>%
-  filter(TrajID == 6) %>%
-  select(E, N)
-
-t1 <- as.matrix(t1)
-t2 <- as.matrix(t2)
-t3 <- as.matrix(t3)
-t4 <- as.matrix(t4)
-t5 <- as.matrix(t5)
-t6 <- as.matrix(t6)
-
-
-```
-
-
-
-
-
-```{r}
-
-dtw_vals <- c(
-  DTW(t1, t2, pointSpacing=-1),
-  DTW(t1, t3, pointSpacing=-1),
-  DTW(t1, t4, pointSpacing=-1),
-  DTW(t1, t5, pointSpacing=-1),
-  DTW(t1, t6, pointSpacing=-1)
-)
-
-edit_vals <- c(
-  EditDist(t1, t2, pointDistance=20),
-  EditDist(t1, t3, pointDistance=20),
-  EditDist(t1, t4, pointDistance=20),
-  EditDist(t1, t5, pointDistance=20),
-  EditDist(t1, t6, pointDistance=20)
-)
-
-frechet_vals <- c(
-  Frechet(t1, t2, testLeash=-1),
-  Frechet(t1, t3, testLeash=-1),
-  Frechet(t1, t4, testLeash=-1),
-  Frechet(t1, t5, testLeash=-1),
-  Frechet(t1, t6, testLeash=-1)
-)
-
-lcss_vals <- c(
-  LCSS(t1, t2, pointDistance=100, errorMarg=50),
-  LCSS(t1, t3, pointDistance=100, errorMarg=50),
-  LCSS(t1, t4, pointDistance=100, errorMarg=50),
-  LCSS(t1, t5, pointDistance=100, errorMarg=50),
-  LCSS(t1, t6, pointDistance=100, errorMarg=50)
-)
-
-```
-
-
-
-
-
-```{r}
-
-
-dtw_df <- data.frame(
-  Trajectory = 2:6,
-  Similarity = dtw_vals
-)
-
-ggplot(dtw_df,
-       aes(x = factor(Trajectory),
-           y = Similarity)) +
-
-  geom_col() +
-
-  labs(
-    title = "DTW similarity to trajectory 1",
-    x = "Trajectory",
-    y = "DTW distance"
-  ) +
-
-  theme_minimal()
-
-
-```
-
-
-
-```{r}
-
-edit_df <- data.frame(
-  Trajectory = 2:6,
-  Similarity = edit_vals
-)
-
-ggplot(edit_df,
-       aes(x = factor(Trajectory),
-           y = Similarity)) +
-
-  geom_col() +
-
-  labs(
-    title = "Edit Distance similarity to trajectory 1",
-    x = "Trajectory",
-    y = "Edit Distance"
-  ) +
-
-  theme_minimal()
-
-
-```
-
-
-
-
-```{r}
-
-
-frechet_df <- data.frame(
-  Trajectory = 2:6,
-  Similarity = frechet_vals
-)
-
-ggplot(frechet_df,
-       aes(x = factor(Trajectory),
-           y = Similarity)) +
-
-  geom_col() +
-
-  labs(
-    title = "Frechet similarity to trajectory 1",
-    x = "Trajectory",
-    y = "Frechet distance"
-  ) +
-
-  theme_minimal()
-
-
-```
-
-
-
-```{r}
-
-lcss_df <- data.frame(
-  Trajectory = 2:6,
-  Similarity = lcss_vals
-)
-
-ggplot(lcss_df,
-       aes(x = factor(Trajectory),
-           y = Similarity)) +
-
-  geom_col() +
-
-  labs(
-    title = "LCSS similarity to trajectory 1",
-    x = "Trajectory",
-    y = "LCSS similarity"
-  ) +
-
-  theme_minimal()
-
-
-```
-
