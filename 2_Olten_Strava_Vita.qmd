@@ -1,0 +1,132 @@
+---
+title: "Olten Vitaparcours STRAVA 2"
+format: 
+  html: default
+  typst: 
+    toc: true
+author: Rodrigo Nogueira Silva
+execute: 
+  warning: false
+  message: false
+  echo: false
+---
+
+
+##Vitaparcours Olten 2
+
+```{r}
+library("readr")
+
+Vita <- read_delim("datasets/Vita_2/track_points.csv", ",")
+
+
+
+library(sf)
+
+Vita_sf <- st_as_sf(
+  Vita,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+library(ggplot2)
+
+ggplot(Vita_sf)+
+  geom_sf()+
+  geom_path(aes(X,Y))
+  
+
+```
+
+
+
+```{r}
+
+library(dplyr)
+distance_by_element <- function(later, now) {
+  as.numeric(
+    st_distance(later, now, by_element = TRUE)
+  )
+}
+
+
+route <- Vita_sf |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+
+route <- route |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = FALSE)
+    ) |>
+    ungroup()
+
+```
+
+
+
+
+```{r}
+
+threshold <- mean(route$stepMean, na.rm = TRUE)
+
+
+route <- route |>
+    mutate(move = stepMean > threshold)
+
+
+ggplot(route)+
+  geom_sf(aes(color=move))+
+  geom_path(aes(x = X, y = Y))
+
+
+route_static <- route |>
+    filter(!move)
+
+ggplot(route_static)+
+  geom_sf(aes(color=move))+
+  geom_path(aes(x = X, y = Y))
+
+```
+
+
+
+```{r}
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+route_id <- route |>
+    mutate(segment_id = rle_id(move))
+
+```
+
+
+
+```{r}
+
+
+library(tmap)
+tmap_mode("view")
+
+tm_shape(route_static) + 
+  tm_dots()
+
+route_line <- route_static |> 
+  summarise(do_union = FALSE) |> 
+  st_cast("LINESTRING")
+
+tmap_options(basemap.server = "OpenStreetMap")
+
+tm_shape(route_line) +
+  tm_lines() +
+  tm_shape(route_static) + 
+  tm_dots()
+
+
+```
