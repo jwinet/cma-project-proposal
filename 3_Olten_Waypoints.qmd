@@ -1,0 +1,35 @@
+---
+title: "Waypoints Olten"
+format: 
+  html: default
+  typst: 
+    toc: true
+author: Rodrigo Nogueira Silva
+execute: 
+  warning: false
+  message: false
+  echo: false
+---
+
+```{r}
+
+library("readr")
+
+wpolten <- read_delim("datasets/Olten_Waypoints/Waypoints.csv", ",")
+
+
+
+library(sf)
+
+wpolten_sf <- st_as_sf(
+  wpolten,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+library(ggplot2)
+
+ggplot(wpolten_sf)+
+  geom_sf()
+
+```
+

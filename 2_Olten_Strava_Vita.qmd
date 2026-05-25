@@ -17,20 +17,20 @@ execute:
 ```{r}
 library("readr")
 
-Vita <- read_delim("datasets/Vita_2/track_points.csv", ",")
+Vita2 <- read_delim("datasets/Vita_2/track_points.csv", ",")
 
 
 
 library(sf)
 
-Vita_sf <- st_as_sf(
-  Vita,
+Vita_sf2 <- st_as_sf(
+  Vita2,
   coords = c("X", "Y"),
   crs = 2056, remove = FALSE)
 
 library(ggplot2)
 
-ggplot(Vita_sf)+
+ggplot(Vita_sf2)+
   geom_sf()+
   geom_path(aes(X,Y))
   
@@ -42,26 +42,26 @@ ggplot(Vita_sf)+
 ```{r}
 
 library(dplyr)
-distance_by_element <- function(later, now) {
+distance_by_element2 <- function(later, now) {
   as.numeric(
     st_distance(later, now, by_element = TRUE)
   )
 }
 
 
-route <- Vita_sf |>
+route2 <- Vita_sf2 |>
     mutate(
-        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
-        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
-        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
-        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+        nMinus2 = distance_by_element2(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element2(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element2(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element2(geometry, lead(geometry, 2)))
 
 
 
-route <- route |>
+route2 <- route2 |>
     rowwise() |>
     mutate(
-        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = FALSE)
+        stepMean2 = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = FALSE)
     ) |>
     ungroup()
 
@@ -72,37 +72,35 @@ route <- route |>
 
 ```{r}
 
-threshold <- mean(route$stepMean, na.rm = TRUE)
+threshold2 <- mean(route2$stepMean2, na.rm = TRUE)
 
 
-route <- route |>
-    mutate(move = stepMean > threshold)
+route2 <- route2 |>
+    mutate(move2 = stepMean2 > threshold2)
 
 
-ggplot(route)+
-  geom_sf(aes(color=move))+
-  geom_path(aes(x = X, y = Y))
+ggplot(route2)+
+  geom_sf(aes(color=move2))
 
 
-route_static <- route |>
-    filter(!move)
+route_static2 <- route2 |>
+    filter(!move2)
 
-ggplot(route_static)+
-  geom_sf(aes(color=move))+
-  geom_path(aes(x = X, y = Y))
+ggplot(route_static2)+
+  geom_sf(aes(color=move2))
 
 ```
 
 
 
 ```{r}
-rle_id <- function(vec) {
+rle_id2 <- function(vec) {
     x <- rle(vec)$lengths
     as.factor(rep(seq_along(x), times = x))
 }
 
-route_id <- route |>
-    mutate(segment_id = rle_id(move))
+route_id2 <- route2 |>
+    mutate(segment_id2 = rle_id2(move2))
 
 ```
 
@@ -114,19 +112,11 @@ route_id <- route |>
 library(tmap)
 tmap_mode("view")
 
-tm_shape(route_static) + 
+tm_shape(route_static2) + 
   tm_dots()
-
-route_line <- route_static |> 
-  summarise(do_union = FALSE) |> 
-  st_cast("LINESTRING")
 
 tmap_options(basemap.server = "OpenStreetMap")
 
-tm_shape(route_line) +
-  tm_lines() +
-  tm_shape(route_static) + 
-  tm_dots()
 
 
 ```

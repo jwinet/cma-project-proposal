@@ -79,16 +79,14 @@ route <- route |>
 
 
 ggplot(route)+
-  geom_sf(aes(color=move))+
-  geom_path(aes(x = X, y = Y))
+  geom_sf(aes(color=move))
 
 
 route_static <- route |>
     filter(!move)
 
 ggplot(route_static)+
-  geom_sf(aes(color=move))+
-  geom_path(aes(x = X, y = Y))
+  geom_sf(aes(color=move))
 
 ```
 
@@ -116,16 +114,8 @@ tmap_mode("view")
 tm_shape(route_static) + 
   tm_dots()
 
-route_line <- route_static |> 
-  summarise(do_union = FALSE) |> 
-  st_cast("LINESTRING")
-
 tmap_options(basemap.server = "OpenStreetMap")
 
-tm_shape(route_line) +
-  tm_lines() +
-  tm_shape(route_static) + 
-  tm_dots()
 
 
 ```
