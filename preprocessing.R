@@ -57,3 +57,29 @@ Posmo_Wollerau_20260521 <- read_delim("datasets/posmo_2026-05-21.csv", ",") |>
 Posmo_Wollerau_20260521 <- st_transform(Posmo_Wollerau_20260521, 2056)
 
 
+
+
+##Vita Olten 1 STRAVA
+
+Vita <- read_delim("datasets/Vita_1/track_points.csv", ",")
+
+
+Vita_sf <- st_as_sf(
+  Vita,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+
+
+
+##Vita Olten 2 STRAVA
+
+Vita2 <- read_delim("datasets/Vita_2/track_points.csv", ",")
+
+
+Vita_sf2 <- st_as_sf(
+  Vita2,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+
