@@ -108,7 +108,6 @@ route_id2 <- route2 |>
 
 ```{r}
 
-
 library(tmap)
 tmap_mode("view")
 
@@ -116,7 +115,6 @@ tm_shape(route_static2) +
   tm_dots()
 
 tmap_options(basemap.server = "OpenStreetMap")
-
 
 
 ```
