@@ -1,0 +1,58 @@
+---
+title: "To Do"
+format: html
+---
+
+# Preprocessing
+
+up scaling or down scaling (easier)
+remove noise and outliers
+
+-> save all cleaned dataset in a similar manner so we can use functions in the index.gmd file.
+- same E and N 
+- include: time, coordinates...
+
+
+# Do the analysation 
+ 
+use different methods
+
+use centroid (better than mean)
+
+
+# Qunatification
+
+How do we quantifie a success -> near or exact -> maybe use different buffer sizes and compare
+
+
+-	true positive
+-	false positive 
+-	false negative 
+-	true negative 
+
+# Write text
+
+- Length of report (approx. 15000 char (incl. spaces, incl. References list, excl. Code listing), 20000 char max
+- Typically include text, maps, plots, appendices, code and references.
+
+## Abstract
+
+## Introduction
+
+## Research Question
+
+## Material and Methods
+
+problems and limitations
+
+## Results
+
+## Discussion
+
+problems and limitations
+
+## Appendix
+
+Refferences
+
+### Wordcount
