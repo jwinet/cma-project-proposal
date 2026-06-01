@@ -1,0 +1,3 @@
+X,Y,ele,time,magvar,geoidheight,name,cmt,desc,src,link1_href,link1_text,link1_type,link2_href,link2_text,link2_type,sym,type,fix,sat,hdop,vdop,pdop,ageofdgpsdata,dgpsid,swisstopo_waypoint_id,swisstopo_waypoint_routepoint_id,swisstopo_waypoint_meters_into_tour,swisstopo_waypoint_is_controlpoint,swisstopo_waypoint_stage_before
+2695615.85451077,1227114.89826253,606.1,,,,Startpunkt,,,,,,,,,,,,,,,,,,,"1","118357208",0,"1",
+2695608.07610196,1227093.13701903,603.1,,,,Ziel,,,,,,,,,,,,,,,,,,,"2","594936034",3013.165338,"1",

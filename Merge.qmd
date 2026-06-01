@@ -1,0 +1,289 @@
+---
+title: "Merge"
+format: html
+---
+
+```{r}
+
+library(dplyr)
+distance_by_element <- function(later, now) {
+  as.numeric(
+    st_distance(later, now, by_element = TRUE)
+  )
+}
+
+
+
+
+
+
+
+Strava1 <- Vita_sf |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+Strava1 <- Strava1 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Strava2 <- Vita_sf2 |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+Strava2 <- Strava2 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Posmo1 <- Posmo |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+Posmo1 <- Posmo1 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Posmo2 <- Posmo2 |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+Posmo2 <- Posmo2 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Swisstopo1 <- Wollerau_Vita_sf |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+Swisstopo1 <- Swisstopo1 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Swisstopo2 <- Wollerau_Vita_sf2 |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
+
+
+Swisstopo2 <- Swisstopo2 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+
+
+
+
+Strava1 <- Strava1 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Strava2 <- Strava2 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Posmo1 <- Posmo1 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Posmo2 <- Posmo2 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Swisstopo1 <- Swisstopo1 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+Swisstopo2 <- Swisstopo2 |>
+    rowwise() |>
+    mutate(
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
+    ) |>
+    ungroup()
+
+
+
+
+
+
+
+
+
+
+
+threshold_Strava1 <- mean(Strava1$stepMean, na.rm = TRUE)
+
+Strava1 <- Strava1 |>
+  mutate(Strava1_move = stepMean > threshold_Strava1)
+
+threshold_Strava2 <- mean(Strava2$stepMean, na.rm = TRUE)
+
+Strava2 <- Strava2 |>
+  mutate(Strava2_move = stepMean > threshold_Strava2)
+
+threshold_Posmo1 <- mean(Posmo1$stepMean, na.rm = TRUE)
+
+Posmo1 <- Posmo1 |>
+  mutate(Posmo1_move = stepMean > threshold_Posmo1)
+
+threshold_Posmo2 <- mean(Posmo2$stepMean, na.rm = TRUE)
+
+Posmo2 <- Posmo2 |>
+  mutate(Posmo2_move = stepMean > threshold_Posmo2)
+
+threshold_Swisstopo1 <- mean(Swisstopo1$stepMean, na.rm = TRUE)
+
+Swisstopo1 <- Swisstopo1 |>
+  mutate(Swisstopo1_move = stepMean > threshold_Swisstopo1)
+
+threshold_Swisstopo2 <- mean(Swisstopo2$stepMean, na.rm = TRUE)
+
+Swisstopo2 <- Swisstopo2 |>
+  mutate(Swisstopo2_move = stepMean > threshold_Swisstopo2)
+
+
+ggplot(Strava1)+
+  geom_sf(aes(color=Strava1_move))
+
+ggplot(Strava2) +
+  geom_sf(aes(color = Strava2_move))
+
+ggplot(Posmo1) +
+  geom_sf(aes(color = Posmo1_move))
+
+ggplot(Posmo2) +
+  geom_sf(aes(color = Posmo2_move))
+
+ggplot(Swisstopo1) +
+  geom_sf(aes(color = Swisstopo1_move))
+
+ggplot(Swisstopo2) +
+  geom_sf(aes(color = Swisstopo2_move))
+
+
+Strava1_static <- Strava1 |>
+    filter(!Strava1_move)
+
+ggplot(Strava1_static)+
+  geom_sf(aes(color=Strava1_move))
+
+Strava2_static <- Strava2 |>
+  filter(!Strava2_move)
+
+ggplot(Strava2_static) +
+  geom_sf()
+
+Posmo1_static <- Posmo1 |>
+  filter(!Posmo1_move)
+
+ggplot(Posmo1_static) +
+  geom_sf()
+
+Posmo2_static <- Posmo2 |>
+  filter(!Posmo2_move)
+
+ggplot(Posmo2_static) +
+  geom_sf()
+
+Swisstopo1_static <- Swisstopo1 |>
+  filter(!Swisstopo1_move)
+
+ggplot(Swisstopo1_static) +
+  geom_sf()
+
+Swisstopo2_static <- Swisstopo2 |>
+  filter(!Swisstopo2_move)
+
+ggplot(Swisstopo2_static) +
+  geom_sf()
+
+
+
+
+
+
+
+
+
+
+
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+
+Strava1 <- Strava1 |>
+  mutate(segment_id = rle_id(Strava1_move))
+
+Strava2 <- Strava2 |>
+  mutate(segment_id = rle_id(Strava1_move))
+
+Posmo1 <- Posmo1 |>
+  mutate(segment_id = rle_id(Posmo1_move))
+
+Posmo2 <- Posmo2 |>
+  mutate(segment_id = rle_id(Posmo2_move))
+
+Swisstopo1 <- Swisstopo1 |>
+  mutate(segment_id = rle_id(Swisstopo1_move))
+
+Swisstopo2 <- Swisstopo2 |>
+  mutate(segment_id = rle_id(Swisstopo2_move))
+
+```
+
+
+

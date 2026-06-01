@@ -48,23 +48,25 @@ distance_by_element <- function(later, now) {
 }
 
 
-route <- Vita_sf |>
-    mutate(
-        nMinus2 = distance_by_element(lag(geometry, 2), geometry), 
-        nMinus1 = distance_by_element(lag(geometry, 1), geometry), 
-        nPlus1  = distance_by_element(geometry, lead(geometry, 1)), 
-        nPlus2  = distance_by_element(geometry, lead(geometry, 2)))
 
+
+route <- Vita_resampled |>
+    mutate(
+        nMinus2 = distance_by_element(lag(geometry, 10), geometry), 
+        nMinus1 = distance_by_element(lag(geometry, 5), geometry), 
+        nPlus1  = distance_by_element(geometry, lead(geometry, 5)), 
+        nPlus2  = distance_by_element(geometry, lead(geometry, 10)))
 
 
 route <- route |>
     rowwise() |>
     mutate(
-        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = FALSE)
+        stepMean = mean(c(nMinus2, nMinus1, nPlus1, nPlus2), na.rm = TRUE)
     ) |>
     ungroup()
 
 ```
+
 
 
 
