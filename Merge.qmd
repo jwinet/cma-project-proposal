@@ -4,7 +4,7 @@ format: html
 ---
 
 ```{r}
-
+library(sf)
 library(dplyr)
 distance_by_element <- function(later, now) {
   as.numeric(
@@ -213,6 +213,45 @@ ggplot(Swisstopo2) +
   geom_sf(aes(color = Swisstopo2_move))
 
 
+
+
+
+
+
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+
+Strava1 <- Strava1 |>
+  mutate(segment_id = rle_id(Strava1_move))
+
+Strava2 <- Strava2 |>
+  mutate(segment_id = rle_id(Strava2_move))
+
+Posmo1 <- Posmo1 |>
+  mutate(segment_id = rle_id(Posmo1_move))
+
+Posmo2 <- Posmo2 |>
+  mutate(segment_id = rle_id(Posmo2_move))
+
+Swisstopo1 <- Swisstopo1 |>
+  mutate(segment_id = rle_id(Swisstopo1_move))
+
+Swisstopo2 <- Swisstopo2 |>
+  mutate(segment_id = rle_id(Swisstopo2_move))
+
+
+
+
+
+
+
+
+
+
+
 Strava1_static <- Strava1 |>
     filter(!Strava1_move)
 
@@ -259,29 +298,359 @@ ggplot(Swisstopo2_static) +
 
 
 
-rle_id <- function(vec) {
-    x <- rle(vec)$lengths
-    as.factor(rep(seq_along(x), times = x))
-}
 
 
-Strava1 <- Strava1 |>
-  mutate(segment_id = rle_id(Strava1_move))
+```
 
-Strava2 <- Strava2 |>
-  mutate(segment_id = rle_id(Strava1_move))
 
-Posmo1 <- Posmo1 |>
-  mutate(segment_id = rle_id(Posmo1_move))
+```{r}
 
-Posmo2 <- Posmo2 |>
-  mutate(segment_id = rle_id(Posmo2_move))
 
-Swisstopo1 <- Swisstopo1 |>
-  mutate(segment_id = rle_id(Swisstopo1_move))
+wpolten_buf <- wpolten_sf |>
+  mutate(gt_id = row_number()) |>
+  st_buffer(20)
 
-Swisstopo2 <- Swisstopo2 |>
-  mutate(segment_id = rle_id(Swisstopo2_move))
+Strava1_segments <- Strava1_static |>
+  group_by(segment_id) |>
+  summarise(geometry = st_union(geometry),
+            .groups = "drop")
+
+Strava1_hits <- st_intersection(
+  Strava1_segments,
+  wpolten_buf
+)
+
+Strava1_stops <- Strava1_hits |>
+  group_by(gt_id) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+Strava1_stops <- st_as_sf(Strava1_stops, coords = c("X","Y"), crs = 2056)
+
+ggplot(Strava1_stops)+
+  geom_sf()
+
+
+
+Strava2_segments <- Strava2_static |>
+  group_by(segment_id) |>
+  summarise(geometry = st_union(geometry),
+            .groups = "drop")
+
+Strava2_hits <- st_intersection(
+  Strava2_segments,
+  wpolten_buf
+)
+
+Strava2_stops <- Strava2_hits |>
+  group_by(gt_id) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+Strava2_stops <- st_as_sf(Strava2_stops, coords = c("X","Y"), crs = 2056)
+
+ggplot(Strava2_stops)+
+  geom_sf()
+
+
+
+
+
+wpwollerau_buf <- wpwollerau_sf |>
+  mutate(gt_id = row_number()) |>
+  st_buffer(20)
+
+Posmo1_segments <- Posmo1_static |>
+  group_by(segment_id) |>
+  summarise(geometry = st_union(geometry),
+            .groups = "drop")
+
+Posmo1_hits <- st_intersection(
+  Posmo1_segments,
+  wpwollerau_buf
+)
+
+Posmo1_stops <- Posmo1_hits |>
+  group_by(gt_id) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+Posmo1_stops <- st_as_sf(Posmo1_stops, coords = c("X","Y"), crs = st_crs(wpwollerau_buf))
+
+
+
+
+
+Posmo2_segments <- Posmo2_static |>
+  group_by(segment_id) |>
+  summarise(geometry = st_union(geometry),
+            .groups = "drop")
+
+Posmo2_hits <- st_intersection(
+  Posmo2_segments,
+  wpwollerau_buf
+)
+
+Posmo2_stops <- Posmo2_hits |>
+  group_by(gt_id) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+Posmo2_stops <- st_as_sf(Posmo2_stops, coords = c("X","Y"), crs = st_crs(wpwollerau_buf))
+
+
+Swisstopo1_segments <- Swisstopo1_static |>
+  group_by(segment_id) |>
+  summarise(geometry = st_union(geometry),
+            .groups = "drop")
+
+Swisstopo1_hits <- st_intersection(
+  Swisstopo1_segments,
+  wpwollerau_buf
+)
+
+Swisstopo1_stops <- Swisstopo1_hits |>
+  group_by(gt_id) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+Swisstopo1_stops <- st_as_sf(Swisstopo1_stops, coords = c("X","Y"), crs = st_crs(wpwollerau_buf))
+
+
+
+Swisstopo2_segments <- Swisstopo2_static |>
+  group_by(segment_id) |>
+  summarise(geometry = st_union(geometry),
+            .groups = "drop")
+
+Swisstopo2_hits <- st_intersection(
+  Swisstopo2_segments,
+  wpwollerau_buf
+)
+
+Swisstopo2_stops <- Swisstopo2_hits |>
+  group_by(gt_id) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+Swisstopo2_stops <- st_as_sf(Swisstopo2_stops, coords = c("X","Y"), crs = st_crs(wpwollerau_buf))
+
+
+```
+
+
+
+```{r}
+
+inside <- st_intersects(Strava1_static, wpolten_buf)
+
+Strava1_out <- Strava1_static[lengths(inside) == 0, ]
+
+nrow(Strava1_out)
+
+ggplot() +
+  geom_sf(data = wpolten_buf, fill = NA, color = "red") +
+  geom_sf(data = Strava1_static, color = "grey70", size = 1) +
+  geom_sf(data = Strava1_out, color = "blue", size = 2)
+
+coords <- st_coordinates(Strava1_out)
+
+cl <- dbscan(coords, eps = 20, minPts = 1)
+
+Strava1_out$cluster <- cl$cluster
+
+Strava1_false_stops <- Strava1_out |>
+  group_by(cluster) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+nrow(Strava1_false_stops)
+
+ggplot() +
+  geom_sf(data = wpolten_buf, fill = NA, color = "red") +
+  geom_sf(data = Strava1_out, color = "grey70") +
+  geom_sf(data = Strava1_false_stops, color = "blue", size = 2)
+
+
+
+
+
+
+
+
+
+inside <- st_intersects(Strava2_static, wpolten_buf)
+
+Strava2_out <- Strava2_static[lengths(inside) == 0, ]
+
+nrow(Strava2_out)
+
+ggplot() +
+  geom_sf(data = wpolten_buf, fill = NA, color = "red") +
+  geom_sf(data = Strava2_static, color = "grey70", size = 1) +
+  geom_sf(data = Strava2_out, color = "blue", size = 2)
+
+coords <- st_coordinates(Strava2_out)
+
+cl <- dbscan(coords, eps = 20, minPts = 1)
+
+Strava2_out$cluster <- cl$cluster
+
+Strava2_false_stops <- Strava2_out |>
+  group_by(cluster) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+nrow(Strava2_false_stops)
+
+ggplot() +
+  geom_sf(data = wpolten_buf, fill = NA, color = "red") +
+  geom_sf(data = Strava2_out, color = "grey70") +
+  geom_sf(data = Strava2_false_stops, color = "blue", size = 2)
+
+
+
+
+
+
+
+inside <- st_intersects(Posmo1_static, wpwollerau_buf)
+
+Posmo1_out <- Posmo1_static[lengths(inside) == 0, ]
+
+nrow(Posmo1_out)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Posmo1_static, color = "grey70", size = 1) +
+  geom_sf(data = Posmo1_out, color = "blue", size = 2)
+
+coords <- st_coordinates(Posmo1_out)
+
+cl <- dbscan(coords, eps = 20, minPts = 1)
+
+Posmo1_out$cluster <- cl$cluster
+
+Posmo1_false_stops <- Posmo1_out |>
+  group_by(cluster) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+nrow(Posmo1_false_stops)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Posmo1_out, color = "grey70") +
+  geom_sf(data = Posmo1_false_stops, color = "blue", size = 2)
+
+
+
+
+
+
+inside <- st_intersects(Posmo2_static, wpwollerau_buf)
+
+Posmo2_out <- Posmo2_static[lengths(inside) == 0, ]
+
+nrow(Posmo2_out)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Posmo2_static, color = "grey70", size = 1) +
+  geom_sf(data = Posmo2_out, color = "blue", size = 2)
+
+coords <- st_coordinates(Posmo2_out)
+
+cl <- dbscan(coords, eps = 20, minPts = 1)
+
+
+#0 outliers, no more analysis needed
+
+inside <- st_intersects(Swisstopo1_static, wpwollerau_buf)
+
+Swisstopo1_out <- Swisstopo1_static[lengths(inside) == 0, ]
+
+nrow(Swisstopo1_out)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Swisstopo1_static, color = "grey70", size = 1) +
+  geom_sf(data = Swisstopo1_out, color = "blue", size = 2)
+
+coords <- st_coordinates(Swisstopo1_out)
+
+cl <- dbscan(coords, eps = 20, minPts = 1)
+
+Swisstopo1_out$cluster <- cl$cluster
+
+Swisstopo1_false_stops <- Swisstopo1_out |>
+  group_by(cluster) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+nrow(Swisstopo1_false_stops)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Swisstopo1_out, color = "grey70") +
+  geom_sf(data = Swisstopo1_false_stops, color = "blue", size = 2)
+
+
+
+
+
+inside <- st_intersects(Swisstopo2_static, wpwollerau_buf)
+
+Swisstopo2_out <- Swisstopo2_static[lengths(inside) == 0, ]
+
+nrow(Swisstopo2_out)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Swisstopo2_static, color = "grey70", size = 1) +
+  geom_sf(data = Swisstopo2_out, color = "blue", size = 2)
+
+coords <- st_coordinates(Swisstopo2_out)
+
+cl <- dbscan(coords, eps = 20, minPts = 1)
+
+Swisstopo2_out$cluster <- cl$cluster
+
+Swisstopo2_false_stops <- Swisstopo2_out |>
+  group_by(cluster) |>
+  summarise(
+    geometry = st_centroid(st_combine(geometry)),
+    .groups = "drop"
+  )
+
+nrow(Swisstopo2_false_stops)
+
+ggplot() +
+  geom_sf(data = wpwollerau_buf, fill = NA, color = "red") +
+  geom_sf(data = Swisstopo2_out, color = "grey70") +
+  geom_sf(data = Swisstopo2_false_stops, color = "blue", size = 2)
+
+
 
 ```
 
