@@ -69,38 +69,45 @@ wp_olten <- st_as_sf(
 
 ## Swisstopo 1 Wollerau 
 
-Swisstopo_1 <- read_delim("datasets/Test_Wollerau/Vita1/track_points.csv", ",") # load data
+Swisstopo_1 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260521.gpx", layer = "track_points") # load data
 
-Swisstopo_1 <- st_as_sf(
-  Swisstopo_1,
-  coords = c("X", "Y"),
-  crs = 2056, remove = FALSE) # creat geometry variable
+Swisstopo_1 <- st_transform(Swisstopo_1, crs = 2056) # transform geometry variable
 
-Swisstopo_1$time <- with_tz(as.POSIXct(Swisstopo_1$time, tz = "UTC"), tzone = "Europe/Zurich") # convert to our time zone
+Swisstopo_1_coords <- st_coordinates(Swisstopo_1) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+Swisstopo_1$X <- Swisstopo_1_coords[, 1]
+Swisstopo_1$Y <- Swisstopo_1_coords[, 2]
 
 ## Swisstopo 2 Wollerau 
 
-Swisstopo_2 <- read_delim("datasets/Test_Wollerau/Vita2/track_points.csv", ",") # load data
+Swisstopo_2 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260524.gpx", layer = "track_points") # load data
 
-Swisstopo_2 <- st_as_sf(
-  Swisstopo_2,
-  coords = c("X", "Y"),
-  crs = 2056, remove = FALSE) # creat geometry variable
+Swisstopo_2 <- st_transform(Swisstopo_2, crs = 2056) # transform geometry variable
 
-Swisstopo_2$time <- with_tz(as.POSIXct(Swisstopo_2$time, tz = "UTC"), tzone = "Europe/Zurich") # convert to our time zone
+Swisstopo_2_coords <- st_coordinates(Swisstopo_2) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+Swisstopo_2$X <- Swisstopo_2_coords[, 1]
+Swisstopo_2$Y <- Swisstopo_2_coords[, 2]
 
 ## Waypoints Wollerau
 
-wp_wollerau <- read_delim("datasets/Test_Wollerau/wp_wollerau.csv", ",") # load data
+wp_wollerau <- st_read("datasets/Wollerau/Waypoint_wollerau_20260521.gpx", layer = "waypoints") # load data
 
-wp_wollerau <- st_as_sf(
-  wp_wollerau,
-  coords = c("X", "Y"),
-  crs = 2056, remove = FALSE) # creat geometry variable
+wp_wollerau <- st_transform(wp_wollerau, crs = 2056) # transform geometry variable
+
+wp_wollerau_coords <- st_coordinates(wp_wollerau) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+wp_wollerau$X <- wp_wollerau_coords[, 1]
+wp_wollerau$Y <- wp_wollerau_coords[, 2]
+
+wp_wollerau <- wp_wollerau[wp_wollerau$desc != "Start", ] # remove start coordinate
 
 ## Posmo 1 Wollerau 
 
-Posmo_1 <- read_delim("datasets/Test_Wollerau/Posmo/posmo_20260521.csv", ",")  # load data
+Posmo_1 <- read_delim("datasets/Wollerau/posmo_20260521.csv", ",")  # load data
 
 ### create same collumn nmaes
 
@@ -123,7 +130,7 @@ Posmo_1[, c("X", "Y")] <- st_coordinates(Posmo_1)
 
 ## Posmo 2 Wollerau
 
-Posmo_2 <- read_delim("datasets/Test_Wollerau/Posmo/posmo_20260524.csv", ",") # load data
+Posmo_2 <- read_delim("datasets/Wollerau/posmo_20260524.csv", ",") # load data
 
 ### create same collumn nmaes
 
