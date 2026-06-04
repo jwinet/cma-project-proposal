@@ -7,8 +7,8 @@ library("zoo")
 
 # Context Data forest
 
-leaflet() %>%
-  addTiles() %>%
+leaflet()  |> 
+  addTiles()  |> 
   addWMSTiles(
     baseUrl = "https://wms.geo.admin.ch/",
     layers = "ch.swisstopo.swisstlm3d-wald",
@@ -32,56 +32,146 @@ st_write(wald_selection_wollerau, dsn="datasets/wald_selection_wollerau.gpkg") #
 
 wald <- st_read("datasets/wald_selection_wollerau.gpkg")
 
-# Vitaparcours Data
 
-## Wollerau
 
-### True location of posts
+# Vitaparcours Data Judith 04.06.2026
 
-Stations_Wollerau_20260521_swisstopo <- st_read("datasets/Wollerau/Waypoint_wollerau_20260521.gpx", layer = "waypoints")
+## STRAVA Vita 1 Olten 
 
-Stations_Wollerau_20260521_swisstopo <- st_transform(Stations_Wollerau_20260521_swisstopo, 2056)
+Strava_1 <- read_delim("datasets/Vita_1/track_points.csv", ",") # load data
 
-### Tracked data 20260521
+Strava_1 <- st_as_sf(
+  Strava_1,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
 
-Swisstopo_Wollerau_20260521 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260521.gpx", layer = "track_points")
+Strava_1$time <- with_tz(as.POSIXct(Strava_1$time, tz = "UTC"), tz="Europe/Zurich") # convert to our time zone
 
-Swisstopo_Wollerau_20260521 <- st_transform(Swisstopo_Wollerau_20260521, 2056)
+## STRAVA Vita 2 Olten 
 
-Posmo_Wollerau_20260521 <- read_delim("datasets/Wollerau/posmo_20260521.csv", ",") |> 
-  st_as_sf(coords = c("lon_x","lat_y"), crs = 4326) |> 
-  mutate(datetime = with_tz(datetime, tzone = "Europe/Zurich")) |>
+Strava_2 <- read_delim("datasets/Vita_2/track_points.csv", ",") # load data
+
+Strava_2 <- st_as_sf(
+  Strava_2,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+Strava_2$time <- with_tz(as.POSIXct(Strava_2$time, tz = "UTC"), tz="Europe/Zurich") # convert to our time zone
+
+## Waypoints Olten
+
+wp_olten <- read_delim("datasets/Olten_Waypoints/Waypoints.csv", ",") # load data
+
+wp_olten <- st_as_sf(
+  wp_olten,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+## Swisstopo 1 Wollerau 
+
+Swisstopo_1 <- read_delim("datasets/Test_Wollerau/Vita1/track_points.csv", ",") # load data
+
+Swisstopo_1 <- st_as_sf(
+  Swisstopo_1,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+Swisstopo_1$time <- with_tz(as.POSIXct(Swisstopo_1$time, tz = "UTC"), tzone = "Europe/Zurich") # convert to our time zone
+
+## Swisstopo 2 Wollerau 
+
+Swisstopo_2 <- read_delim("datasets/Test_Wollerau/Vita2/track_points.csv", ",") # load data
+
+Swisstopo_2 <- st_as_sf(
+  Swisstopo_2,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+Swisstopo_2$time <- with_tz(as.POSIXct(Swisstopo_2$time, tz = "UTC"), tzone = "Europe/Zurich") # convert to our time zone
+
+## Waypoints Wollerau
+
+wp_wollerau <- read_delim("datasets/Test_Wollerau/wp_wollerau.csv", ",") # load data
+
+wp_wollerau <- st_as_sf(
+  wp_wollerau,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+## Posmo 1 Wollerau 
+
+Posmo_1 <- read_delim("datasets/Test_Wollerau/Posmo/posmo_20260521.csv", ",")  # load data
+
+### create same collumn nmaes
+
+names(Posmo_1)[names(Posmo_1) == "lon_x"] <- "X"
+names(Posmo_1)[names(Posmo_1) == "lat_y"] <- "Y"
+
+names(Posmo_1)[names(Posmo_1) == "datetime"] <- "time"
+
+Posmo_1 <- Posmo_1 |> 
+  st_as_sf(coords = c("X", "Y"), crs = 4326, remove = FALSE) |> 
+  mutate(time = with_tz(time, tzone = "Europe/Zurich")) |>
   filter(
-    datetime>= as.POSIXct("2026-05-21 16:14:55", tz = "Europe/Zurich"),
-    datetime < as.POSIXct("2026-05-21 17:09:19", tz = "Europe/Zurich")
-  )
+    time>= as.POSIXct("2026-05-21 16:14:55", tz = "Europe/Zurich"),
+    time < as.POSIXct("2026-05-21 17:09:19", tz = "Europe/Zurich")
+  ) # creat geometry variable and filter only vitaparcours tracks with the time 
 
-Posmo_Wollerau_20260521 <- st_transform(Posmo_Wollerau_20260521, 2056)
+Posmo_1 <- st_transform(Posmo_1, 2056) # transfrom to swiss coordinates
 
-### Tracked data 20260524
+Posmo_1[, c("X", "Y")] <- st_coordinates(Posmo_1)
 
-<<<<<<< HEAD
+## Posmo 2 Wollerau
 
+Posmo_2 <- read_delim("datasets/Test_Wollerau/Posmo/posmo_20260524.csv", ",") # load data
 
+### create same collumn nmaes
 
+names(Posmo_2)[names(Posmo_2) == "lon_x"] <- "X"
+names(Posmo_2)[names(Posmo_2) == "lat_y"] <- "Y"
 
-=======
-Swisstopo_Wollerau_20260524 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260524.gpx", layer = "track_points")
+names(Posmo_2)[names(Posmo_2) == "datetime"] <- "time"
 
-Swisstopo_Wollerau_20260524 <- st_transform(Swisstopo_Wollerau_20260524, 2056)
-
-Posmo_Wollerau_20260524 <- read_delim("datasets/Wollerau/posmo_20260524.csv", ",")
-
-Posmo_Wollerau_20260524 <- read_delim("datasets/Wollerau/posmo_20260524.csv", ",") |> 
-  st_as_sf(coords = c("lon_x","lat_y"), crs = 4326) |> 
-  mutate(datetime = with_tz(datetime, tzone = "Europe/Zurich")) |>
+Posmo_2 <- Posmo_2 |> 
+  st_as_sf(coords = c("X","Y"), crs = 4326, remove = FALSE) |> 
+  mutate(time = with_tz(time, tzone = "Europe/Zurich")) |>
   filter(
-    datetime>= as.POSIXct("2026-05-24 09:13:46", tz = "Europe/Zurich"),
-    datetime < as.POSIXct("2026-05-24 10:00:43", tz = "Europe/Zurich")
-  )
+    time>= as.POSIXct("2026-05-24 09:13:46", tz = "Europe/Zurich"),
+    time < as.POSIXct("2026-05-24 10:00:43", tz = "Europe/Zurich")
+  ) # creat geometry variable and filter only vitaparcours track with the time 
 
-Posmo_Wollerau_20260524 <- st_transform(Posmo_Wollerau_20260524, 2056)
->>>>>>> 1c74f28298a0f6d546ef2f5e70eb2a20de024181
+Posmo_2 <- st_transform(Posmo_2, 2056) # transform geometry to swiss coordinates
+
+Posmo_2[, c("X", "Y")] <- st_coordinates(Posmo_2) # # transform X and Y to swiss coordinates
+
+# Save all the tracks as new datasets
+
+## define a clean and save function
+save_spatial_gpkg <- function(df, file_name) {
+  # Strip columns that are 100% NA
+  df_cleaned <- df %>% select(where(~ !all(is.na(.))))
+  
+  # Set up path to datasets/cleaned
+  output_path <- file.path("datasets", "cleaned", paste0(file_name, ".gpkg"))
+  
+  # Write file (overwrites existing files cleanly)
+  st_write(df_cleaned, output_path, delete_dsn = TRUE, quiet = TRUE)
+  
+  message("Saved: ", output_path)
+  return(df_cleaned)
+}
+
+## process  Olten datasets
+Strava_1_clean   <- save_spatial_gpkg(Strava_1, "Strava_1_Olten")
+Strava_2_clean   <- save_spatial_gpkg(Strava_2, "Strava_2_Olten")
+wp_olten_clean   <- save_spatial_gpkg(wp_olten, "Waypoints_Olten")
+
+## Batch process your Wollerau datasets
+Swisstopo_1_clean <- save_spatial_gpkg(Swisstopo_1, "Swisstopo_1_Wollerau")
+Swisstopo_2_clean <- save_spatial_gpkg(Swisstopo_2, "Swisstopo_2_Wollerau")
+wp_wollerau_clean <- save_spatial_gpkg(wp_wollerau, "Waypoints_Wollerau")
+Posmo_1_clean     <- save_spatial_gpkg(Posmo_1, "Posmo_1_Wollerau")
+Posmo_2_clean     <- save_spatial_gpkg(Posmo_2, "Posmo_2_Wollerau")
 
 
 
@@ -89,31 +179,18 @@ Posmo_Wollerau_20260524 <- st_transform(Posmo_Wollerau_20260524, 2056)
 
 
 
+# Test Rodrigo
 
-
-
-
-
-
-
-
-##mis konzept
-
-
-##Vita Olten 1 STRAVA
+## STRAVA Vita 1 Olten 
 
 Vita <- read_delim("datasets/Vita_1/track_points.csv", ",")
-
 
 Vita_sf <- st_as_sf(
   Vita,
   coords = c("X", "Y"),
   crs = 2056, remove = FALSE)
 
-
-
-
-##Vita Olten 2 STRAVA
+## STRAVA Vita 2 Olten 
 
 Vita2 <- read_delim("datasets/Vita_2/track_points.csv", ",")
 
@@ -123,54 +200,43 @@ Vita_sf2 <- st_as_sf(
   coords = c("X", "Y"),
   crs = 2056, remove = FALSE)
 
-
-##Wollerau1
-
-Wollerau_Vita <- read_delim("datasets/Test_Wollerau/Vita1/track_points.csv", ",")
-
-
-Wollerau_Vita_sf <- st_as_sf(
-  Wollerau_Vita,
-  coords = c("X", "Y"),
-  crs = 2056, remove = FALSE)
-
-
-##Wollerau2
-
-Wollerau_Vita2 <- read_delim("datasets/Test_Wollerau/Vita2/track_points.csv", ",")
-
-
-Wollerau_Vita_sf2 <- st_as_sf(
-  Wollerau_Vita2,
-  coords = c("X", "Y"),
-  crs = 2056, remove = FALSE)
-
-
-##Waypoints Olten
-
+## Waypoints Olten
 
 wpolten <- read_delim("datasets/Olten_Waypoints/Waypoints.csv", ",")
-
 
 wpolten_sf <- st_as_sf(
   wpolten,
   coords = c("X", "Y"),
   crs = 2056, remove = FALSE)
 
+## Swisstopo 1 Wollerau 
 
-##Waypoints Wollerau
+Wollerau_Vita <- read_delim("datasets/Test_Wollerau/Vita1/track_points.csv", ",")
+
+Wollerau_Vita_sf <- st_as_sf(
+  Wollerau_Vita,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+## Swisstopo 2 Wollerau 
+
+Wollerau_Vita2 <- read_delim("datasets/Test_Wollerau/Vita2/track_points.csv", ",")
+
+Wollerau_Vita_sf2 <- st_as_sf(
+  Wollerau_Vita2,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE)
+
+## Waypoints Wollerau
 
 wpwollerau <- read_delim("datasets/Test_Wollerau/wp_wollerau.csv", ",")
-
 
 wpwollerau_sf <- st_as_sf(
   wpwollerau,
   coords = c("X", "Y"),
   crs = 2056, remove = FALSE)
 
-
-
-##Posmo Wollerau 1
+## Posmo 1 Wollerau 
 
 Posmo <- read_delim("datasets/Test_Wollerau/Posmo/posmo_20260521.csv", ",")
 
@@ -179,7 +245,6 @@ names(Posmo)[names(Posmo) == "lat_y"] <- "Y"
 
 names(Posmo)[names(Posmo) == "datetime"] <- "time"
 names(Posmo)[names(Posmo) == "datetime"] <- "time"
-
 
 Posmo <- Posmo |> 
   st_as_sf(coords = c("X","Y"), crs = 4326, remove = FALSE) |> 
@@ -193,7 +258,7 @@ Posmo <- st_transform(Posmo, 2056)
 
 Posmo[, c("X", "Y")] <- st_coordinates(Posmo)
 
-##Posmo Wollerau 2
+## Posmo 2 Wollerau
 
 Posmo2 <- read_delim("datasets/Test_Wollerau/Posmo/posmo_20260524.csv", ",")
 
@@ -215,19 +280,6 @@ Posmo2 <- st_transform(Posmo2, 2056)
 
 Posmo2[, c("X", "Y")] <- st_coordinates(Posmo2)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ##Scaling
 
 Vita_sf$time <- as.POSIXct(Vita_sf$time, tz="Europe/Zurich")
@@ -236,9 +288,6 @@ Wollerau_Vita_sf$time <- as.POSIXct(Wollerau_Vita_sf$time, tz="Europe/Zurich")
 Vita_sf2$time <- as.POSIXct(Vita_sf2$time, tz="Europe/Zurich")
 Posmo2$time <- as.POSIXct(Posmo2$time, tz="Europe/Zurich")
 Wollerau_Vita_sf2$time <- as.POSIXct(Wollerau_Vita_sf2$time, tz="Europe/Zurich")
-
-
-
 
 Vita_sf <- Vita_sf[order(Vita_sf$time), ]
 Vita_sf <- Vita_sf[!duplicated(Vita_sf$time), ]
@@ -257,7 +306,6 @@ Posmo2 <- Posmo2[!duplicated(Posmo2$time), ]
 
 Wollerau_Vita_sf2 <- Wollerau_Vita_sf2[order(Wollerau_Vita_sf2$time), ]
 Wollerau_Vita_sf2 <- Wollerau_Vita_sf2[!duplicated(Wollerau_Vita_sf2$time), ]
-
 
 
 time_grid <- seq(
