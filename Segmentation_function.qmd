@@ -4,6 +4,283 @@ format: html
 ---
 
 ```{r}
+library(sf)
+library(dplyr)
+library(purrr)
+library(slider)
+library(ggplot2)
+library(patchwork)
+library(igraph)
+```
+
+
+```{r}
+# Loading the cleaned data
+
+Strava_1_clean   <- st_read("datasets/cleaned/Strava_1_Olten.gpkg")
+Strava_2_clean   <- st_read("datasets/cleaned/Strava_2_Olten.gpkg")
+wp_olten_clean   <- st_read("datasets/cleaned/Waypoints_Olten.gpkg")
+
+Swisstopo_1_clean <- st_read("datasets/cleaned/Swisstopo_1_Wollerau.gpkg")
+Swisstopo_2_clean <- st_read("datasets/cleaned/Swisstopo_2_Wollerau.gpkg")
+wp_wollerau_clean <- st_read("datasets/cleaned/Waypoints_Wollerau.gpkg")
+Posmo_1_clean     <- st_read("datasets/cleaned/Posmo_1_Wollerau.gpkg")
+Posmo_2_clean     <- st_read("datasets/cleaned/Posmo_2_Wollerau.gpkg")
 
 ```
+
+
+```{r}
+
+# Extract Static Events Using a Mean Temporal Window Distance
+
+# sf_data An already loaded sf data frame.
+# time_col Character string of the timestamp column name (must be POSIXct).
+# window Total size of the time window in seconds.
+
+classify_temporal_static <- function(sf_data, time_col, window) {
+  
+  # orders data chronologically
+  sf_data <- sf_data |>  arrange(!!sym(time_col))
+  
+  geoms <- st_geometry(sf_data)
+  timestamps <- sf_data[[time_col]]
+  
+  # devides window into 2
+  half_window <- dseconds(window / 2)
+  
+  # 1. Compute the mean distance to ALL points inside the temporal window
+  stepMean_vector <- map_dbl(seq_along(timestamps), function(i) {
+    current_time <- timestamps[i]
+    current_geom <- geoms[i]
+    
+    # Find indices of all points within the temporal window (-half_window to +half_window)
+    in_window_indices <- which(timestamps >= (current_time - half_window) & 
+                               timestamps <= (current_time + half_window))
+    
+    # Exclude the current point itself
+    in_window_indices <- in_window_indices[in_window_indices != i]
+    
+    if (length(in_window_indices) == 0) return(NA)
+    
+    # Calculate spatial distances from current point to all window points
+    distances <- st_distance(current_geom, geoms[in_window_indices])
+    
+    # Return the mean of these window distances
+    mean(as.numeric(distances), na.rm = TRUE)
+  })
+  
+  #  adds stepMean
+  sf_data$stepMean <- stepMean_vector
+  
+  # 3. Calculate the threshold
+  global_threshold <- mean(sf_data$stepMean, na.rm = TRUE)
+  
+  # 4. If the window mean is below the global average -> it's static
+  sf_data <- sf_data  |> 
+    mutate(is_static = stepMean < global_threshold)
+  
+  return(sf_data)
+}
+
+# Apply the temporal window to datasets
+
+Strava_1_processed_30 <- classify_temporal_static(Strava_1_clean, time_col = "time", window = 30)
+Strava_2_processed_30 <- classify_temporal_static(Strava_2_clean, time_col = "time", window = 30)
+Swisstopo_1_processed_30 <- classify_temporal_static(Swisstopo_1_clean, time_col = "time", window = 30)
+Swisstopo_2_processed_30 <- classify_temporal_static(Swisstopo_2_clean, time_col = "time", window = 30)
+Posmo_1_processed_30  <- classify_temporal_static(Posmo_1_clean,  time_col = "time", window = 30)
+Posmo_2_processed_30  <- classify_temporal_static(Posmo_2_clean,  time_col = "time", window = 30)
+
+Strava_1_processed_10 <- classify_temporal_static(Strava_1_clean, time_col = "time", window = 10)
+Strava_2_processed_10 <- classify_temporal_static(Strava_2_clean, time_col = "time", window = 10)
+Swisstopo_1_processed_10 <- classify_temporal_static(Swisstopo_1_clean, time_col = "time", window = 10)
+Swisstopo_2_processed_10 <- classify_temporal_static(Swisstopo_2_clean, time_col = "time", window = 10)
+Posmo_1_processed_10  <- classify_temporal_static(Posmo_1_clean,  time_col = "time", window = 10)
+Posmo_2_processed_10  <- classify_temporal_static(Posmo_2_clean,  time_col = "time", window = 10)
+
+```
+
+```{r}
+
+theme_x_cord <- list(
+  coord_sf(datum = 2056),
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
+    plot.title = element_text(size = 10, face = "bold")
+  )
+)
+
+p1 <- ggplot(Strava_1_processed_10 ) +
+  geom_sf(aes(color = is_static), size = 1) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  labs(title = "Strava 1") +
+  theme_x_cord
+
+p2 <- ggplot(Strava_2_processed_10) +
+  geom_sf(aes(color = is_static), size = 1) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  labs(title = "Strava 2") +
+  theme_x_cord
+
+p3 <- ggplot(Swisstopo_1_processed_10) +
+  geom_sf(aes(color = is_static), size = 1) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  coord_sf(datum = 2056) +
+  labs(title = "Swisstopo 1") +
+  theme_x_cord
+
+p4 <- ggplot(Swisstopo_2_processed_10) +
+  geom_sf(aes(color = is_static), size = 1) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  coord_sf(datum = 2056) +
+  labs(title = "Swisstopo 2") +
+  theme_x_cord
+
+p5 <- ggplot(Posmo_1_processed_10) +
+  geom_sf(aes(color = is_static), size = 1) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  coord_sf(datum = 2056) +
+  labs(title = "Posmo 1") +
+  theme_x_cord
+
+p6 <- ggplot(Posmo_2_processed_10) +
+  geom_sf(aes(color = is_static), size = 1) +
+  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  coord_sf(datum = 2056) +
+  labs(title = "Posmo 2") +
+  theme_x_cord
+
+# creates a grid layout with 3 columns, and collects the legends into one clean spot
+(p1 + p2 + p3) / (p4 + p5 + p6) + 
+  plot_layout(guides = "collect") +
+  plot_annotation(
+    title = "Static vs. Moving",
+    subtitle = "Time window of 10 seconds",
+    theme = theme(plot.title = element_text(face = "bold", size = 14))
+  )
+```
+
+
+```{r}
+
+# clusters together points which are close together and compares them to the way point buffer
+
+stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
+  
+  # only take static points
+  static_only <- full_df |> 
+    filter(is_static == TRUE)
+  
+  # Checks if there are no static points
+  if (nrow(static_only) == 0) {
+    return(st_as_sf(data.frame(geometry = st_sfc(), crs = st_crs(waypoints))))
+  }
+  
+    all_results_list <- list()
+  
+  # cluster for each maximale distanz 
+  for (md in max_dist_list) {
+    
+    # calculates distance matrix for all points
+    # distance and adjacency matrix for the current max_dist (md)
+    dist_matrix <- st_distance(static_only)
+    adj_matrix <- dist_matrix <= units::set_units(md, "m")
+    
+    # give Cluster-IDs 
+    g <- igraph::graph_from_adjacency_matrix(adj_matrix, mode = "undirected")
+    static_only$cluster_id <- igraph::components(g)$membership
+    
+    # calculate centroids for specific max_dist
+    current_centroids <- static_only |>
+      group_by(cluster_id) |>
+      summarise(.groups = "drop") |>
+      st_centroid() |>
+      mutate(max_dist_setting = md) # saves maximum distance at which this centroid was calculated
+    
+    # inner loop: For each buffer size around the waypoints
+    for (buf_size in wp_buffer_list) {
+      
+      # calculate temporary buffer for the waypoints
+      temp_buffer_df <- waypoints |>
+        mutate(gt_id = row_number()) |>
+        st_buffer(buf_size)
+      
+      intersect_list <- st_intersects(current_centroids, temp_buffer_df)
+      
+      # generate dynamic column names (e.g. in_buf_md10_b15)
+      col_name_bool <- paste0("in_buf_md", md, "_b", buf_size)
+      col_name_id   <- paste0("gt_id_md", md, "_b", buf_size)
+      
+      # Write the results as new columns in the temporary Centroid table
+      current_centroids <- current_centroids |>
+        mutate(
+          !!col_name_bool := lengths(intersect_list) > 0,
+          !!col_name_id   := sapply(intersect_list, function(x) if(length(x) > 0) temp_buffer_df$gt_id[x[1]] else NA)
+        )
+    }
+    
+    # Save the interim result for this max_dist in our list.
+    all_results_list[[as.character(md)]] <- current_centroids
+  }
+  
+  # Combine all the partial results (for each max_dist) into one large table.
+  final_df <- bind_rows(all_results_list)
+  
+  return(final_df)
+}
+
+# buffer size around way points
+max_dist_liste <- c(5, 10, 15)
+wp_buffer_liste <- c(5, 10, 15)
+
+Strava_1_stops_list <- stops(Strava_1_processed_10, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+
+```
+
+
+
+```{r}
+theme_x_cord <- list(
+  coord_sf(datum = 2056),
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
+    plot.title = element_text(size = 9, face = "bold"),
+    axis.title = element_blank()
+  )
+)
+
+plot_liste <- list()
+
+for (md in max_dist_liste) {
+  
+  strava_filtered <- Strava_1_stops_list |> 
+    filter(max_dist_setting == md)
+  
+  for (buf in wp_buffer_liste) {
+    
+    current_col <- paste0("in_buf_md", md, "_b", buf)
+    
+    p <- ggplot() +
+      geom_sf(data = st_buffer(wp_olten_clean, buf), fill = "gray70", alpha = 0.50, color = NA) +
+      geom_sf(data = strava_filtered, aes(color = .data[[current_col]]), size = 1) +
+      scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "firebrick")) +
+      labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), color = "Inside?") +
+      theme_x_cord
+    
+    plot_liste[[paste0("md", md, "_b", buf)]] <- p
+  }
+}
+
+wrap_plots(plot_liste, ncol = 3) + 
+  plot_layout(guides = "collect") + 
+  plot_annotation(
+    title = "Strava 1 - 9 combinations of clustering and buffering around waypoint",
+    subtitle = "Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
+  )
+```
+
+
 

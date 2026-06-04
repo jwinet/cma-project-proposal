@@ -67,6 +67,14 @@ wp_olten <- st_as_sf(
   coords = c("X", "Y"),
   crs = 2056, remove = FALSE) # creat geometry variable
 
+wp_olten_coords <- st_coordinates(wp_olten) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+wp_olten$X <- wp_olten_coords[, 1]
+wp_oltenY <- wp_olten_coords[, 2]
+
+wp_wollerau <- wp_wollerau[wp_wollerau$desc != "Start", ]
+
 ## Swisstopo 1 Wollerau 
 
 Swisstopo_1 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260521.gpx", layer = "track_points") # load data
@@ -168,12 +176,11 @@ save_spatial_gpkg <- function(df, file_name) {
   return(df_cleaned)
 }
 
-## process  Olten datasets
+## Save the cleaned datasets
 Strava_1_clean   <- save_spatial_gpkg(Strava_1, "Strava_1_Olten")
 Strava_2_clean   <- save_spatial_gpkg(Strava_2, "Strava_2_Olten")
 wp_olten_clean   <- save_spatial_gpkg(wp_olten, "Waypoints_Olten")
 
-## Batch process your Wollerau datasets
 Swisstopo_1_clean <- save_spatial_gpkg(Swisstopo_1, "Swisstopo_1_Wollerau")
 Swisstopo_2_clean <- save_spatial_gpkg(Swisstopo_2, "Swisstopo_2_Wollerau")
 wp_wollerau_clean <- save_spatial_gpkg(wp_wollerau, "Waypoints_Wollerau")
