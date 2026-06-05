@@ -4,6 +4,8 @@ library("sf")
 library("dplyr")
 library("lubridate")
 library("zoo")
+library("purrr")
+library("stringr")
 
 # Context Data forest
 
@@ -34,7 +36,7 @@ wald <- st_read("datasets/wald_selection_wollerau.gpkg")
 
 
 
-# Vitaparcours Data Judith 04.06.2026
+# Vitaparcours Data created: 04.06.2026
 
 ## STRAVA Vita 1 Olten 
 
@@ -187,6 +189,104 @@ wp_wollerau_clean <- save_spatial_gpkg(wp_wollerau, "Waypoints_Wollerau")
 Posmo_1_clean     <- save_spatial_gpkg(Posmo_1, "Posmo_1_Wollerau")
 Posmo_2_clean     <- save_spatial_gpkg(Posmo_2, "Posmo_2_Wollerau")
 
+
+# Extract Static Events Using a Mean Temporal Window Distance
+
+# sf_data data frame.
+# time_col timestamp column name (must be POSIXct).
+# window Total size of the time window in seconds.
+
+classify_temporal_static <- function(sf_data, time_col, window) {
+  
+  # orders data chronologically
+  sf_data <- sf_data |>  arrange(!!sym(time_col))
+  
+  geoms <- st_geometry(sf_data)
+  timestamps <- sf_data[[time_col]]
+  
+  # devides window into 2
+  half_window <- dseconds(window / 2)
+  
+  # 1. Compute the mean distance to ALL points inside the temporal window
+  stepMean_vector <- map_dbl(seq_along(timestamps), function(i) {
+    current_time <- timestamps[i]
+    current_geom <- geoms[i]
+    
+    # Find indices of all points within the temporal window (-half_window to +half_window)
+    in_window_indices <- which(timestamps >= (current_time - half_window) & 
+                                 timestamps <= (current_time + half_window))
+    
+    # Exclude the current point itself
+    in_window_indices <- in_window_indices[in_window_indices != i]
+    
+    if (length(in_window_indices) == 0) return(NA)
+    
+    # Calculate spatial distances from current point to all window points
+    distances <- st_distance(current_geom, geoms[in_window_indices])
+    
+    # Return the mean of these window distances
+    mean(as.numeric(distances), na.rm = TRUE)
+  })
+  
+  #  adds stepMean
+  sf_data$stepMean <- stepMean_vector
+  
+  # 3. Calculate the threshold
+  global_threshold <- mean(sf_data$stepMean, na.rm = TRUE)
+  
+  # 4. If the window mean is below the global average -> it's static
+  sf_data <- sf_data  |> 
+    mutate(is_static = stepMean < global_threshold)
+  
+  return(sf_data)
+}
+
+# Apply the temporal window to datasets (needs some minutes to comupte)
+
+## group base datasets into a named list
+datasets <- list(
+  Strava_1 = Strava_1_clean,
+  Strava_2 = Strava_2_clean,
+  Swisstopo_1 = Swisstopo_1_clean,
+  Swisstopo_2 = Swisstopo_2_clean,
+  Posmo_1 = Posmo_1_clean,
+  Posmo_2 = Posmo_2_clean
+)
+
+## define the time windows
+windows <- c(10, 20, 30, 40)
+
+## loop through windows and datasets dynamically and save them
+
+for (w in windows) {
+  message(str_glue("\nProcessing {w}-second window..."))
+  
+  for (name in names(datasets)) {
+    # Generate the clear variable name (e.g., "Strava_1_processed_10")
+    output_name <- str_glue("{name}_processed_{w}")
+    
+    # Run the classification
+    processed_data <- classify_temporal_static(datasets[[name]], time_col = "time", window = w)
+    
+    # Strip columns that are 100% NA
+    processed_data <- processed_data %>% select(where(~ !all(is.na(.))))
+    
+    # Set up path specifically to datasets/cleaned/static
+    output_path <- file.path("datasets", "cleaned", "static", paste0(output_name, ".gpkg"))
+    
+    # Automatically create the nested directories if they don't exist yet
+    dir.create(dirname(output_path), recursive = TRUE, showWarnings = FALSE)
+    
+    # Write file (overwrites existing files cleanly)
+    st_write(processed_data, output_path, delete_dsn = TRUE, quiet = TRUE)
+    
+    # Print custom save message to the console
+    message("Saved: ", output_path)
+    
+    # Save the final cleaned data to your global environment
+    assign(output_name, processed_data, envir = .GlobalEnv)
+  }
+}
 
 
 

@@ -11,97 +11,55 @@ library(slider)
 library(ggplot2)
 library(patchwork)
 library(igraph)
-```
-
-
-```{r}
-# Loading the cleaned data
-
-Strava_1_clean   <- st_read("datasets/cleaned/Strava_1_Olten.gpkg")
-Strava_2_clean   <- st_read("datasets/cleaned/Strava_2_Olten.gpkg")
-wp_olten_clean   <- st_read("datasets/cleaned/Waypoints_Olten.gpkg")
-
-Swisstopo_1_clean <- st_read("datasets/cleaned/Swisstopo_1_Wollerau.gpkg")
-Swisstopo_2_clean <- st_read("datasets/cleaned/Swisstopo_2_Wollerau.gpkg")
-wp_wollerau_clean <- st_read("datasets/cleaned/Waypoints_Wollerau.gpkg")
-Posmo_1_clean     <- st_read("datasets/cleaned/Posmo_1_Wollerau.gpkg")
-Posmo_2_clean     <- st_read("datasets/cleaned/Posmo_2_Wollerau.gpkg")
 
 ```
 
 
 ```{r}
+# loading the cleand data with static events with different time windows (from preprocessing file)
 
-# Extract Static Events Using a Mean Temporal Window Distance
+# 10 Seconds Window
+Strava_1_processed_10    <- st_read("datasets/cleaned/static/Strava_1_processed_10.gpkg", quiet = TRUE)
+Strava_2_processed_10    <- st_read("datasets/cleaned/static/Strava_2_processed_10.gpkg", quiet = TRUE)
+Swisstopo_1_processed_10 <- st_read("datasets/cleaned/static/Swisstopo_1_processed_10.gpkg", quiet = TRUE)
+Swisstopo_2_processed_10 <- st_read("datasets/cleaned/static/Swisstopo_2_processed_10.gpkg", quiet = TRUE)
+Posmo_1_processed_10     <- st_read("datasets/cleaned/static/Posmo_1_processed_10.gpkg", quiet = TRUE)
+Posmo_2_processed_10     <- st_read("datasets/cleaned/static/Posmo_2_processed_10.gpkg", quiet = TRUE)
 
-# sf_data An already loaded sf data frame.
-# time_col Character string of the timestamp column name (must be POSIXct).
-# window Total size of the time window in seconds.
+# 20 Seconds Window
+Strava_1_processed_20    <- st_read("datasets/cleaned/static/Strava_1_processed_20.gpkg", quiet = TRUE)
+Strava_2_processed_20    <- st_read("datasets/cleaned/static/Strava_2_processed_20.gpkg", quiet = TRUE)
+Swisstopo_1_processed_20 <- st_read("datasets/cleaned/static/Swisstopo_1_processed_20.gpkg", quiet = TRUE)
+Swisstopo_2_processed_20 <- st_read("datasets/cleaned/static/Swisstopo_2_processed_20.gpkg", quiet = TRUE)
+Posmo_1_processed_20     <- st_read("datasets/cleaned/static/Posmo_1_processed_20.gpkg", quiet = TRUE)
+Posmo_2_processed_20     <- st_read("datasets/cleaned/static/Posmo_2_processed_20.gpkg", quiet = TRUE)
 
-classify_temporal_static <- function(sf_data, time_col, window) {
-  
-  # orders data chronologically
-  sf_data <- sf_data |>  arrange(!!sym(time_col))
-  
-  geoms <- st_geometry(sf_data)
-  timestamps <- sf_data[[time_col]]
-  
-  # devides window into 2
-  half_window <- dseconds(window / 2)
-  
-  # 1. Compute the mean distance to ALL points inside the temporal window
-  stepMean_vector <- map_dbl(seq_along(timestamps), function(i) {
-    current_time <- timestamps[i]
-    current_geom <- geoms[i]
-    
-    # Find indices of all points within the temporal window (-half_window to +half_window)
-    in_window_indices <- which(timestamps >= (current_time - half_window) & 
-                               timestamps <= (current_time + half_window))
-    
-    # Exclude the current point itself
-    in_window_indices <- in_window_indices[in_window_indices != i]
-    
-    if (length(in_window_indices) == 0) return(NA)
-    
-    # Calculate spatial distances from current point to all window points
-    distances <- st_distance(current_geom, geoms[in_window_indices])
-    
-    # Return the mean of these window distances
-    mean(as.numeric(distances), na.rm = TRUE)
-  })
-  
-  #  adds stepMean
-  sf_data$stepMean <- stepMean_vector
-  
-  # 3. Calculate the threshold
-  global_threshold <- mean(sf_data$stepMean, na.rm = TRUE)
-  
-  # 4. If the window mean is below the global average -> it's static
-  sf_data <- sf_data  |> 
-    mutate(is_static = stepMean < global_threshold)
-  
-  return(sf_data)
-}
+# 30 Seconds Window
+Strava_1_processed_30    <- st_read("datasets/cleaned/static/Strava_1_processed_30.gpkg", quiet = TRUE)
+Strava_2_processed_30    <- st_read("datasets/cleaned/static/Strava_2_processed_30.gpkg", quiet = TRUE)
+Swisstopo_1_processed_30 <- st_read("datasets/cleaned/static/Swisstopo_1_processed_30.gpkg", quiet = TRUE)
+Swisstopo_2_processed_30 <- st_read("datasets/cleaned/static/Swisstopo_2_processed_30.gpkg", quiet = TRUE)
+Posmo_1_processed_30     <- st_read("datasets/cleaned/static/Posmo_1_processed_30.gpkg", quiet = TRUE)
+Posmo_2_processed_30     <- st_read("datasets/cleaned/static/Posmo_2_processed_30.gpkg", quiet = TRUE)
 
-# Apply the temporal window to datasets
+# 40 Seconds Window
+Strava_1_processed_40    <- st_read("datasets/cleaned/static/Strava_1_processed_40.gpkg", quiet = TRUE)
+Strava_2_processed_40    <- st_read("datasets/cleaned/static/Strava_2_processed_40.gpkg", quiet = TRUE)
+Swisstopo_1_processed_40 <- st_read("datasets/cleaned/static/Swisstopo_1_processed_40.gpkg", quiet = TRUE)
+Swisstopo_2_processed_40 <- st_read("datasets/cleaned/static/Swisstopo_2_processed_40.gpkg", quiet = TRUE)
+Posmo_1_processed_40     <- st_read("datasets/cleaned/static/Posmo_1_processed_40.gpkg", quiet = TRUE)
+Posmo_2_processed_40     <- st_read("datasets/cleaned/static/Posmo_2_processed_40.gpkg", quiet = TRUE)
 
-Strava_1_processed_30 <- classify_temporal_static(Strava_1_clean, time_col = "time", window = 30)
-Strava_2_processed_30 <- classify_temporal_static(Strava_2_clean, time_col = "time", window = 30)
-Swisstopo_1_processed_30 <- classify_temporal_static(Swisstopo_1_clean, time_col = "time", window = 30)
-Swisstopo_2_processed_30 <- classify_temporal_static(Swisstopo_2_clean, time_col = "time", window = 30)
-Posmo_1_processed_30  <- classify_temporal_static(Posmo_1_clean,  time_col = "time", window = 30)
-Posmo_2_processed_30  <- classify_temporal_static(Posmo_2_clean,  time_col = "time", window = 30)
+# way points cleaned
 
-Strava_1_processed_10 <- classify_temporal_static(Strava_1_clean, time_col = "time", window = 10)
-Strava_2_processed_10 <- classify_temporal_static(Strava_2_clean, time_col = "time", window = 10)
-Swisstopo_1_processed_10 <- classify_temporal_static(Swisstopo_1_clean, time_col = "time", window = 10)
-Swisstopo_2_processed_10 <- classify_temporal_static(Swisstopo_2_clean, time_col = "time", window = 10)
-Posmo_1_processed_10  <- classify_temporal_static(Posmo_1_clean,  time_col = "time", window = 10)
-Posmo_2_processed_10  <- classify_temporal_static(Posmo_2_clean,  time_col = "time", window = 10)
+wp_olten_clean    <- st_read("datasets/cleaned/Waypoints_Olten.gpkg", quiet = TRUE)
+wp_wollerau_clean <- st_read("datasets/cleaned/Waypoints_Wollerau.gpkg", quiet = TRUE)
 
 ```
 
+
 ```{r}
+# Plot the static events
 
 theme_x_cord <- list(
   coord_sf(datum = 2056),
@@ -114,40 +72,40 @@ theme_x_cord <- list(
 
 p1 <- ggplot(Strava_1_processed_10 ) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
   labs(title = "Strava 1") +
   theme_x_cord
 
 p2 <- ggplot(Strava_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
   labs(title = "Strava 2") +
   theme_x_cord
 
 p3 <- ggplot(Swisstopo_1_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
   coord_sf(datum = 2056) +
   labs(title = "Swisstopo 1") +
   theme_x_cord
 
 p4 <- ggplot(Swisstopo_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
   coord_sf(datum = 2056) +
   labs(title = "Swisstopo 2") +
   theme_x_cord
 
 p5 <- ggplot(Posmo_1_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
   coord_sf(datum = 2056) +
   labs(title = "Posmo 1") +
   theme_x_cord
 
 p6 <- ggplot(Posmo_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "red", "FALSE" = "darkblue")) +
+  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
   coord_sf(datum = 2056) +
   labs(title = "Posmo 2") +
   theme_x_cord
@@ -165,7 +123,7 @@ p6 <- ggplot(Posmo_2_processed_10) +
 
 ```{r}
 
-# clusters together points which are close together and compares them to the way point buffer
+# clusters together points which are close together and compare them to the way point buffer
 
 stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
   
@@ -242,6 +200,9 @@ Strava_1_stops_list <- stops(Strava_1_processed_10, wp_olten_clean, max_dist = m
 
 
 ```{r}
+
+# plot the combinations of clustering and buffering around waypoint
+
 theme_x_cord <- list(
   coord_sf(datum = 2056),
   theme_minimal(),
@@ -266,7 +227,7 @@ for (md in max_dist_liste) {
     p <- ggplot() +
       geom_sf(data = st_buffer(wp_olten_clean, buf), fill = "gray70", alpha = 0.50, color = NA) +
       geom_sf(data = strava_filtered, aes(color = .data[[current_col]]), size = 1) +
-      scale_color_manual(values = c("TRUE" = "darkgreen", "FALSE" = "firebrick")) +
+      scale_color_manual(values = c("TRUE" = "green", "FALSE" = "blue")) +
       labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), color = "Inside?") +
       theme_x_cord
     
