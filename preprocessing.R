@@ -32,14 +32,13 @@ bbox <- st_bbox(c(xmin = 2694800.94, xmax = 2695780.92,
 wald_selection_wollerau <- st_crop(wald, bbox)
 st_write(wald_selection_wollerau, dsn="datasets/wald_selection_wollerau.gpkg") # save the forest layer for Wollerau
 
-wald <- st_read("datasets/wald_selection_wollerau.gpkg")
+forest_wollerau <- st_read("datasets/wald_selection_wollerau.gpkg")
 
 
 
 # Vitaparcours Data created: 04.06.2026
 
 ## STRAVA Vita 1 Olten 
-
 Strava_1 <- read_delim("datasets/Vita_1/track_points.csv", ",") # load data
 
 Strava_1 <- st_as_sf(
@@ -50,7 +49,6 @@ Strava_1 <- st_as_sf(
 Strava_1$time <- with_tz(as.POSIXct(Strava_1$time, tz = "UTC"), tz="Europe/Zurich") # convert to our time zone
 
 ## STRAVA Vita 2 Olten 
-
 Strava_2 <- read_delim("datasets/Vita_2/track_points.csv", ",") # load data
 
 Strava_2 <- st_as_sf(
@@ -61,7 +59,6 @@ Strava_2 <- st_as_sf(
 Strava_2$time <- with_tz(as.POSIXct(Strava_2$time, tz = "UTC"), tz="Europe/Zurich") # convert to our time zone
 
 ## Waypoints Olten
-
 wp_olten <- read_delim("datasets/Olten_Waypoints/Waypoints.csv", ",") # load data
 
 wp_olten <- st_as_sf(
@@ -73,12 +70,9 @@ wp_olten_coords <- st_coordinates(wp_olten) # extract  coordinates out of the ge
 
 # assign them to your new X and Y columns
 wp_olten$X <- wp_olten_coords[, 1]
-wp_oltenY <- wp_olten_coords[, 2]
-
-wp_wollerau <- wp_wollerau[wp_wollerau$desc != "Start", ]
+wp_olten$Y <- wp_olten_coords[, 2]
 
 ## Swisstopo 1 Wollerau 
-
 Swisstopo_1 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260521.gpx", layer = "track_points") # load data
 
 Swisstopo_1 <- st_transform(Swisstopo_1, crs = 2056) # transform geometry variable
@@ -90,7 +84,6 @@ Swisstopo_1$X <- Swisstopo_1_coords[, 1]
 Swisstopo_1$Y <- Swisstopo_1_coords[, 2]
 
 ## Swisstopo 2 Wollerau 
-
 Swisstopo_2 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260524.gpx", layer = "track_points") # load data
 
 Swisstopo_2 <- st_transform(Swisstopo_2, crs = 2056) # transform geometry variable
@@ -102,7 +95,6 @@ Swisstopo_2$X <- Swisstopo_2_coords[, 1]
 Swisstopo_2$Y <- Swisstopo_2_coords[, 2]
 
 ## Waypoints Wollerau
-
 wp_wollerau <- st_read("datasets/Wollerau/Waypoint_wollerau_20260521.gpx", layer = "waypoints") # load data
 
 wp_wollerau <- st_transform(wp_wollerau, crs = 2056) # transform geometry variable
@@ -116,7 +108,6 @@ wp_wollerau$Y <- wp_wollerau_coords[, 2]
 wp_wollerau <- wp_wollerau[wp_wollerau$desc != "Start", ] # remove start coordinate
 
 ## Posmo 1 Wollerau 
-
 Posmo_1 <- read_delim("datasets/Wollerau/posmo_20260521.csv", ",")  # load data
 
 ### create same collumn nmaes
@@ -139,7 +130,6 @@ Posmo_1 <- st_transform(Posmo_1, 2056) # transfrom to swiss coordinates
 Posmo_1[, c("X", "Y")] <- st_coordinates(Posmo_1)
 
 ## Posmo 2 Wollerau
-
 Posmo_2 <- read_delim("datasets/Wollerau/posmo_20260524.csv", ",") # load data
 
 ### create same collumn nmaes
@@ -244,6 +234,7 @@ classify_temporal_static <- function(sf_data, time_col, window) {
 # Apply the temporal window to datasets (needs some minutes to comupte)
 
 ## group base datasets into a named list
+
 datasets <- list(
   Strava_1 = Strava_1_clean,
   Strava_2 = Strava_2_clean,
@@ -287,6 +278,9 @@ for (w in windows) {
     assign(output_name, processed_data, envir = .GlobalEnv)
   }
 }
+
+
+
 
 
 

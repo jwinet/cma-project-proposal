@@ -58,66 +58,425 @@ wp_wollerau_clean <- st_read("datasets/cleaned/Waypoints_Wollerau.gpkg", quiet =
 ```
 
 
+
 ```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 10 seconds"
+#| label: fig-10-window
+
 # Plot the static events
 
-theme_x_cord <- list(
-  coord_sf(datum = 2056),
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
   theme_minimal(),
   theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-    plot.title = element_text(size = 10, face = "bold")
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
+)
+
+# hide legend for the first 5 plots to prevent duplicates
+hide_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  guide = "none"
+)
+
+# show full legend on the very last plot, forcing all 3 colors to display
+show_full_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  limits = c(TRUE, FALSE, NA), # <--- Keep this order
+  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  name = "Status"
 )
 
 p1 <- ggplot(Strava_1_processed_10 ) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
+  hide_legend +
   labs(title = "Strava 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p2 <- ggplot(Strava_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
+  hide_legend +
   labs(title = "Strava 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p3 <- ggplot(Swisstopo_1_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
-  coord_sf(datum = 2056) +
+  hide_legend +
   labs(title = "Swisstopo 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p4 <- ggplot(Swisstopo_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
-  coord_sf(datum = 2056) +
+  hide_legend +
   labs(title = "Swisstopo 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p5 <- ggplot(Posmo_1_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
-  coord_sf(datum = 2056) +
+  hide_legend +
   labs(title = "Posmo 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p6 <- ggplot(Posmo_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
-  scale_color_manual(values = c("TRUE" = "green", "FALSE" = "darkblue")) +
-  coord_sf(datum = 2056) +
+  show_full_legend +
   labs(title = "Posmo 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 # creates a grid layout with 3 columns, and collects the legends into one clean spot
-(p1 + p2 + p3) / (p4 + p5 + p6) + 
-  plot_layout(guides = "collect") +
+p1 + p2 + p3 + p4 + p5 + p6 + 
+  plot_layout(ncol = 2, guides = "collect") +
   plot_annotation(
     title = "Static vs. Moving",
     subtitle = "Time window of 10 seconds",
     theme = theme(plot.title = element_text(face = "bold", size = 14))
+  ) 
+
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 20 seconds"
+#| label: fig-20-window
+
+# Plot the static events
+
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
+)
+
+# hide legend for the first 5 plots to prevent duplicates
+hide_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  guide = "none"
+)
+
+# show full legend on the very last plot, forcing all 3 colors to display
+show_full_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  limits = c(TRUE, FALSE, NA), # <--- Keep this order
+  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  name = "Status"
+)
+
+p1 <- ggplot(Strava_1_processed_20 ) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Strava 1") +
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p2 <- ggplot(Strava_2_processed_20) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Strava 2") +
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p3 <- ggplot(Swisstopo_1_processed_20) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Swisstopo 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p4 <- ggplot(Swisstopo_2_processed_20) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Swisstopo 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p5 <- ggplot(Posmo_1_processed_20) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Posmo 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p6 <- ggplot(Posmo_2_processed_20) +
+  geom_sf(aes(color = is_static), size = 1) +
+  show_full_legend +
+  labs(title = "Posmo 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+# creates a grid layout with 3 columns, and collects the legends into one clean spot
+p1 + p2 + p3 + p4 + p5 + p6 + 
+  plot_layout(ncol = 2, guides = "collect") +
+  plot_annotation(
+    title = "Static vs. Moving",
+    subtitle = "Time window of 20 seconds",
+    theme = theme(plot.title = element_text(face = "bold", size = 14))
+  ) 
+
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 30 seconds"
+#| label: fig-30-window
+
+# Plot the static events
+
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
+  )
+)
+
+# hide legend for the first 5 plots to prevent duplicates
+hide_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  guide = "none"
+)
+
+# show full legend on the very last plot, forcing all 3 colors to display
+show_full_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  limits = c(TRUE, FALSE, NA), # <--- Keep this order
+  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  name = "Status"
+)
+
+p1 <- ggplot(Strava_1_processed_30 ) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Strava 1") +
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p2 <- ggplot(Strava_2_processed_30) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Strava 2") +
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p3 <- ggplot(Swisstopo_1_processed_30) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Swisstopo 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p4 <- ggplot(Swisstopo_2_processed_30) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Swisstopo 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p5 <- ggplot(Posmo_1_processed_30) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Posmo 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p6 <- ggplot(Posmo_2_processed_30) +
+  geom_sf(aes(color = is_static), size = 1) +
+  show_full_legend +
+  labs(title = "Posmo 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+# creates a grid layout with 3 columns, and collects the legends into one clean spot
+p1 + p2 + p3 + p4 + p5 + p6 + 
+  plot_layout(ncol = 2, guides = "collect") +
+  plot_annotation(
+    title = "Static vs. Moving",
+    subtitle = "Time window of 30 seconds",
+    theme = theme(plot.title = element_text(face = "bold", size = 14))
+  ) 
+
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 40 seconds"
+#| label: fig-40-window
+
+# Plot the static events
+
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
+  )
+)
+
+# hide legend for the first 5 plots to prevent duplicates
+hide_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  guide = "none"
+)
+
+# show full legend on the very last plot, forcing all 3 colors to display
+show_full_legend <- scale_color_manual(
+  values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
+  na.value = "grey",
+  limits = c(TRUE, FALSE, NA), # <--- Keep this order
+  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  name = "Status"
+)
+
+p1 <- ggplot(Strava_1_processed_40 ) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Strava 1") +
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p2 <- ggplot(Strava_2_processed_40) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Strava 2") +
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p3 <- ggplot(Swisstopo_1_processed_40) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Swisstopo 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p4 <- ggplot(Swisstopo_2_processed_40) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Swisstopo 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p5 <- ggplot(Posmo_1_processed_40) +
+  geom_sf(aes(color = is_static), size = 1) +
+  hide_legend +
+  labs(title = "Posmo 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+p6 <- ggplot(Posmo_2_processed_40) +
+  geom_sf(aes(color = is_static), size = 1) +
+  show_full_legend +
+  labs(title = "Posmo 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
+
+# creates a grid layout with 3 columns, and collects the legends into one clean spot
+p1 + p2 + p3 + p4 + p5 + p6 + 
+  plot_layout(ncol = 2, guides = "collect") +
+  plot_annotation(
+    title = "Static vs. Moving",
+    subtitle = "Time window of 40 seconds",
+    theme = theme(plot.title = element_text(face = "bold", size = 14))
+  ) 
+
 ```
 
 
@@ -136,7 +495,7 @@ stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
     return(st_as_sf(data.frame(geometry = st_sfc(), crs = st_crs(waypoints))))
   }
   
-    all_results_list <- list()
+  all_results_list <- list()
   
   # cluster for each maximale distanz 
   for (md in max_dist_list) {
@@ -177,6 +536,33 @@ stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
           !!col_name_bool := lengths(intersect_list) > 0,
           !!col_name_id   := sapply(intersect_list, function(x) if(length(x) > 0) temp_buffer_df$gt_id[x[1]] else NA)
         )
+    }
+    
+    anchor_id_col <- paste0("gt_id_md", md, "_b", max(wp_buffer_list))
+    
+    hits   <- current_centroids |> filter(!is.na(.data[[anchor_id_col]]))
+    misses <- current_centroids |> filter(is.na(.data[[anchor_id_col]]))
+    
+    if (nrow(hits) > 0) {
+      # Build precise column tracking strings matching the loop state
+      all_dynamic_cols <- c(
+        paste0("in_buf_md", md, "_b", wp_buffer_list),
+        paste0("gt_id_md", md, "_b", wp_buffer_list)
+      )
+      
+      # Squash multiple tracking dots in the same physical buffer down to 1 row
+      hits_cleaned <- hits |>
+        group_by(.data[[anchor_id_col]]) |>
+        summarise(
+          cluster_id       = min(cluster_id),
+          max_dist_setting = min(max_dist_setting),
+          # any_of safely skips any columns that were omitted
+          across(any_of(all_dynamic_cols), ~ max(.x, na.rm = TRUE)),
+          .groups          = "drop"
+        ) |>
+        st_centroid() # Re-compute single center geometry
+      
+      current_centroids <- bind_rows(hits_cleaned, misses)
     }
     
     # Save the interim result for this max_dist in our list.
@@ -234,6 +620,11 @@ Posmo_2_40_stops_list <- stops(Posmo_2_processed_40, wp_wollerau_clean, max_dist
 
 
 ```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events (with a time window of 10 seconds) inside the buffer for different cluster distances and buffer sizes for strava 1"
+#| label: fig-10s-strava1
+
 
 # plot the combinations of clustering and buffering around waypoint
 
@@ -251,7 +642,7 @@ plot_liste <- list()
 
 for (md in max_dist_liste) {
   
-  strava_filtered <- Strava_1_stops_list |> 
+  filtered <- Strava_1_10_stops_list |> 
     filter(max_dist_setting == md)
   
   for (buf in wp_buffer_liste) {
@@ -259,10 +650,20 @@ for (md in max_dist_liste) {
     current_col <- paste0("in_buf_md", md, "_b", buf)
     
     p <- ggplot() +
-      geom_sf(data = st_buffer(wp_olten_clean, buf), fill = "gray70", alpha = 0.50, color = NA) +
-      geom_sf(data = strava_filtered, aes(color = .data[[current_col]]), size = 1) +
-      scale_color_manual(values = c("TRUE" = "green", "FALSE" = "blue")) +
-      labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), color = "Inside?") +
+      geom_sf(data = st_buffer(wp_olten_clean, buf), 
+              fill = "gray70", 
+              alpha = 0.50, 
+              color = NA) +
+      geom_sf(data = filtered, 
+              aes(color = as.character(.data[[current_col]])), 
+              size = 1) +
+      scale_color_manual(
+        values = c("1" = "darkgreen", "0" = "blue"),
+        labels = c("1" = "Hit (TP)", "0" = "False (FP)"),
+        drop = FALSE
+      ) +
+      labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), 
+           color = "Inside of the buffer") +
       theme_x_cord
     
     plot_liste[[paste0("md", md, "_b", buf)]] <- p
@@ -272,10 +673,125 @@ for (md in max_dist_liste) {
 wrap_plots(plot_liste, ncol = 3) + 
   plot_layout(guides = "collect") + 
   plot_annotation(
-    title = "Strava 1 - 9 combinations of clustering and buffering around waypoint",
-    subtitle = "Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
+    title = "Strava 1 - 9 combinations of clustering and buffering around waypoints",
+    subtitle = "Temporal window for static events = 10 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
   )
 ```
 
+```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events (with a time window of 20 seconds) inside the buffer for different cluster distances and buffer sizes for swisstopo 2"
+#| label: fig-20s-swisstopo2
 
 
+# plot the combinations of clustering and buffering around waypoint
+
+theme_x_cord <- list(
+  coord_sf(datum = 2056),
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
+    plot.title = element_text(size = 9, face = "bold"),
+    axis.title = element_blank()
+  )
+)
+
+plot_liste <- list()
+
+for (md in max_dist_liste) {
+  
+  filtered <- Swisstopo_2_20_stops_list |> 
+    filter(max_dist_setting == md)
+  
+  for (buf in wp_buffer_liste) {
+    
+    current_col <- paste0("in_buf_md", md, "_b", buf)
+    
+    p <- ggplot() +
+      geom_sf(data = st_buffer(wp_wollerau_clean, buf), 
+              fill = "gray70", 
+              alpha = 0.50, 
+              color = NA) +
+      geom_sf(data = filtered, 
+              aes(color = as.character(.data[[current_col]])), 
+              size = 1) +
+      scale_color_manual(
+        values = c("1" = "darkgreen", "0" = "blue"),
+        labels = c("1" = "Hit (TP)", "0" = "False (FP)"),
+        drop = FALSE
+      ) +
+      labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), 
+           color = "Inside of the buffer") +
+      theme_x_cord
+    
+    plot_liste[[paste0("md", md, "_b", buf)]] <- p
+  }
+}
+
+wrap_plots(plot_liste, ncol = 3) + 
+  plot_layout(guides = "collect") + 
+  plot_annotation(
+    title = "Swisstopo 2 - 9 combinations of clustering and buffering around waypoints",
+    subtitle = "Temporal window for static events = 20 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
+  )
+```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 11
+#| fig-cap: "Visualisation of the static events (with a time window of 20 seconds) inside the buffer for different cluster distances and buffer sizes for swisstopo 2"
+#| label: fig-30s-posmo1
+
+
+# plot the combinations of clustering and buffering around waypoint
+
+theme_x_cord <- list(
+  coord_sf(datum = 2056),
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
+    plot.title = element_text(size = 9, face = "bold"),
+    axis.title = element_blank()
+  )
+)
+
+plot_liste <- list()
+
+for (md in max_dist_liste) {
+  
+  filtered <- Posmo_1_30_stops_list |> 
+    filter(max_dist_setting == md)
+  
+  for (buf in wp_buffer_liste) {
+    
+    current_col <- paste0("in_buf_md", md, "_b", buf)
+    
+    p <- ggplot() +
+      geom_sf(data = st_buffer(wp_wollerau_clean, buf), 
+              fill = "gray70", 
+              alpha = 0.50, 
+              color = NA) +
+      geom_sf(data = filtered, 
+              aes(color = as.character(.data[[current_col]])), 
+              size = 1) +
+      scale_color_manual(
+        values = c("1" = "darkgreen", "0" = "blue"),
+        labels = c("1" = "Hit (TP)", "0" = "False (FP)"),
+        drop = FALSE
+      ) +
+      labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), 
+           color = "Inside of the buffer") +
+      theme_x_cord
+    
+    plot_liste[[paste0("md", md, "_b", buf)]] <- p
+  }
+}
+
+wrap_plots(plot_liste, ncol = 3) + 
+  plot_layout(guides = "collect") + 
+  plot_annotation(
+    title = "Posmo 2 - 9 combinations of clustering and buffering around waypoints",
+    subtitle = "Temporal window for static events = 40 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
+  )
+```
