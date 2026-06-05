@@ -193,7 +193,41 @@ stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
 max_dist_liste <- c(5, 10, 15)
 wp_buffer_liste <- c(5, 10, 15)
 
-Strava_1_stops_list <- stops(Strava_1_processed_10, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+# add stops to 10 second windows
+
+Strava_1_10_stops_list <- stops(Strava_1_processed_10, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Strava_2_10_stops_list <- stops(Strava_2_processed_10, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_1_10_stops_list <- stops(Swisstopo_1_processed_10, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_2_10_stops_list <- stops(Swisstopo_2_processed_10, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_1_10_stops_list <- stops(Posmo_1_processed_10, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_2_10_stops_list <- stops(Posmo_2_processed_10, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+
+# add stops to 20 second windows
+
+Strava_1_20_stops_list <- stops(Strava_1_processed_20, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Strava_2_20_stops_list <- stops(Strava_2_processed_20, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_1_20_stops_list <- stops(Swisstopo_1_processed_20, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_2_20_stops_list <- stops(Swisstopo_2_processed_20, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_1_20_stops_list <- stops(Posmo_1_processed_20, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_2_20_stops_list <- stops(Posmo_2_processed_20, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+
+# add stops to 30 second windows
+
+Strava_1_30_stops_list <- stops(Strava_1_processed_30, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Strava_2_30_stops_list <- stops(Strava_2_processed_30, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_1_30_stops_list <- stops(Swisstopo_1_processed_30, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_2_30_stops_list <- stops(Swisstopo_2_processed_30, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_1_30_stops_list <- stops(Posmo_1_processed_30, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_2_30_stops_list <- stops(Posmo_2_processed_30, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+
+# add stops to 30 second windows
+
+Strava_1_40_stops_list <- stops(Strava_1_processed_40, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Strava_2_40_stops_list <- stops(Strava_2_processed_40, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_1_40_stops_list <- stops(Swisstopo_1_processed_40, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Swisstopo_2_40_stops_list <- stops(Swisstopo_2_processed_40, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_1_40_stops_list <- stops(Posmo_1_processed_40, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
+Posmo_2_40_stops_list <- stops(Posmo_2_processed_40, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
 
 ```
 
