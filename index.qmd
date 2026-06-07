@@ -23,6 +23,7 @@ library("ggplot2")
 library("patchwork")
 library("igraph")
 library("kableExtra")
+library("ggplot2")
 
 # loading the cleand data with static events with different time windows (from preprocessing file)
 
@@ -805,14 +806,18 @@ ggplot(master_apps, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
   )
 
 
+result_all <- master_apps %>%
+  group_by(App, Window) %>%
+  summarise(
+    precision_mean = mean(Precision, na.rm = TRUE),
+    recall_mean = mean(Recall, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  arrange(App, Window)
+result_all
 ```
 
 ```{r}
-
-global_parameter_table |>
-  arrange(desc(F1)) |>
-  head(5)
-
 
 app_summary <- master_apps %>%
   group_by(App) %>%
@@ -853,12 +858,41 @@ Window_summary
 Buffer_summary
 Cluster_summary
 
-
 ```
 
 ## Discussion
 
+Statistik
+- Erklärung warum F score gut ist
 
+F1 score across parameters: 
+- Erklären warum 5m Buffer scheisse ist
+- Erklären dass man in dieser Grafik nicht erkennen kann, warum 10s nicht gut ist
+- 10-15m cluster visuell am besten mit 15m buffer
+
+F1 score across parameters (by App):
+- 5m immernoch scheisse, unabhängig von der app also Problem liegt wirklich an der Bufferwahl.
+- Posmo allgemein schlechter, aber 10 sek horror, weil zu wenig nachbarn für 10 sek temporal window. Viele NA stepMean Values, somit unbenutzbar, da nicht interpoliert wurde. Nur wenige Werte vorhanden, erkennt dadurch nur wenige Stops. Gleiches für 20 sek immernoch NA values weil zu wenig nachbarn, aber schon deutlich besser. Selbst bei 40 sek hat es höchstens nur 3 nachbarn. Swisstopo hingegen hat in 10 sek 10 werte für den stepMean, Strava 5. Daher besser. Problem lösbar durch lineare Interpolation, welche probiert wurde aber nicht geschafft wurde (war eig ursprüngliche Idee). 
+
+Result
+- Swisstopo schlechter als Strava bei kleineren Windows, obwohl es mehr Werte hat. Warum? in kleineren windows ist precision tiefer bei swisstopo, also mehr false positives, also echte stops nicht erkannt. Je höher dann der Window, desto viel höher die Nachbarszahl, also Precision wird höher. 
+- Posmo schlechter Recall bei 10sek, also hoher anteil an false negative, also viele falsche stops entdeckt. 
+
+Interessanter Finding: 
+- Strava besser als Swisstopo (20:0), obwohl die Waypoints über Swisstopo erstellt wurden. 
+
+Endresultate (als argumentation in andern teilen nutzen):
+- mean und best F bei Strava, 20 perfekte F scores, mean bei posmo deutlich tiefer. (app summary)
+- je länger der window, desto besser der F1 weil mehr nachbarswerte für berechnung. (window_summary)
+- 15m buffer am besten, 10 auch gut, 5 für nichts, wegen entweder ungenauigkeit des GPS oder weil Stopplatz grösser als 5m ist und man für die übung mehr platz braucht. (buffer summary)
+- Cluster macht keinen unterschied. (cluster summary)
+
+
+conclusion:
+- je länger time window, desto mehr nachbarn können verwendet werden, um einen guten wert zu bekommen
+- 5m schlecht
+- posmo schlecht, vor allem bei 10 und 20 sek, wobei interpolation helfen könnte
+- Strava sehr gut 
 
 ## Appendix
 
