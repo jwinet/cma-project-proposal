@@ -50,7 +50,7 @@ distance_by_element <- function(later, now) {
 
 
 
-route <- Vita_resampled |>
+route <- Vita_sf |>
     mutate(
         nMinus2 = distance_by_element(lag(geometry, 10), geometry), 
         nMinus1 = distance_by_element(lag(geometry, 5), geometry), 

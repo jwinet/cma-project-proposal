@@ -757,6 +757,105 @@ global_parameter_table |>
   row_spec(bottom_5_rows, background = "#f8d7da", extra_css = "color: #721c24;")
 ```
 
+```{r}
+
+global_parameter_table <- global_parameter_table |>
+  mutate(
+    Precision = True_Positives / (True_Positives + False_Positives),
+    Recall    = True_Positives / (True_Positives + False_Negatives),
+    
+    F1 = ifelse(
+      (Precision + Recall) == 0,
+      0,
+      2 * (Precision * Recall) / (Precision + Recall)
+    )
+  )
+
+
+ggplot(global_parameter_table, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
+  geom_tile(color = "black", linewidth = 0.1) +
+  facet_wrap(~ Window) +
+  scale_fill_gradient(low = "red", high = "blue") +
+  labs(title = "F1 Score across Parameters", fill = "F1")
+
+```
+
+```{r}
+
+global_parameter_table |>
+  arrange(desc(F1)) |>
+  head(5)
+
+```
+
+```{r}
+add_metrics <- function(df) {
+  df |>
+    mutate(
+      Precision = True_Pos / (True_Pos + False_Pos),
+      Recall    = Captured / Total_GT,
+      
+      F1 = ifelse(
+        (Precision + Recall) == 0,
+        0,
+        2 * Precision * Recall / (Precision + Recall)
+      )
+    )
+}
+master_apps <- add_metrics(master_raw_metrics)
+
+ggplot(master_apps, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
+  geom_tile(color = "black", linewidth = 0.1) +
+  facet_grid(App ~ Window) +
+  scale_fill_gradient(low = "red", high = "blue") +
+  labs(
+    title = "F1 Score across Parameters (by App)",
+    x = "Max Distance (m)",
+    y = "Waypoint Buffer (m)",
+    fill = "F1"
+  )
+
+app_summary <- master_apps %>%
+  group_by(App) %>%
+  summarise(
+    best_F1 = max(F1, na.rm = TRUE),
+    mean_F1 = mean(F1, na.rm = TRUE),
+    count_F1_equal_1 = sum(F1 == 1, na.rm = TRUE)
+  ) %>%
+  ungroup()
+
+
+Window_summary <- master_apps %>%
+  group_by(Window) %>%
+  summarise(
+    mean_F1 = mean(F1, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+Buffer_summary <- master_apps %>%
+  group_by(WP_Buffer) %>%
+  summarise(
+    mean_F1 = mean(F1, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+Cluster_summary <- master_apps %>%
+  group_by(Max_Dist) %>%
+  summarise(
+    mean_F1 = mean(F1, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+
+app_summary
+Window_summary
+Buffer_summary
+Cluster_summary
+
+
+```
 
 ## Discussion
 
