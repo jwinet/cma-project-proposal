@@ -778,17 +778,6 @@ ggplot(global_parameter_table, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
   scale_fill_gradient(low = "red", high = "blue") +
   labs(title = "F1 Score across Parameters", fill = "F1")
 
-```
-
-```{r}
-
-global_parameter_table |>
-  arrange(desc(F1)) |>
-  head(5)
-
-```
-
-```{r}
 add_metrics <- function(df) {
   df |>
     mutate(
@@ -814,6 +803,16 @@ ggplot(master_apps, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
     y = "Waypoint Buffer (m)",
     fill = "F1"
   )
+
+
+```
+
+```{r}
+
+global_parameter_table |>
+  arrange(desc(F1)) |>
+  head(5)
+
 
 app_summary <- master_apps %>%
   group_by(App) %>%
@@ -858,6 +857,8 @@ Cluster_summary
 ```
 
 ## Discussion
+
+
 
 ## Appendix
 
