@@ -1018,33 +1018,19 @@ Top performance for all the different parameters separately.
 
 ## Discussion
 
-Statistik
-- Erklärung warum F score gut ist
+The results of the analysis are based on F1 scores. This metric was chosen because it incorporates all three of our analysis parameters: TP, FP, and FN. The F1 score is calculated using precision and recall metrics. The precision value compares the TP with the FP—that is, the ratio of correctly to incorrectly identified stops—while recall calculates a value that indicates whether all ground truth stops were identified. The closer these parameter values are to 1, the more accurate the method. The F1 score combines both parameters and yields a value between 0 and 1. Thus, the closer the F1 score value is to 1, the more accurate the method. At first glance, the segmentation method appears to show high F1 scores, though with a few exceptions.
 
-F1 score across parameters: 
-- Erklären warum 5m Buffer scheisse ist
-- Erklären dass man in dieser Grafik nicht erkennen kann, warum 10s nicht gut ist
-- 10-15m cluster visuell am besten mit 15m buffer
+In @fig-F1-together, the low F1 score indicates that the 5-meter buffer is a poor choice. The reason for this is that the stops usually covered a large area, and the exercises required a somewhat larger radius. Likewise, GPS inaccuracies are more sensitive in a small buffer and can deviate much more quickly. This negative behavior of the 5m buffer is also evident in @tbl-best-perf-buff. It is also visible that the 10-second intervals yield significantly lower values. However, the reason for this is better shown in @fig-F1-by-App. The Posmo app delivers very low values at short time intervals. Even at 20-second intervals, the values are still not outstanding. This is a weakness of the chosen methodology, since Posmo provides a GPS signal on average every 15 seconds and there are not enough neighbors within the 10-second interval. This results in a very large number of NA stepMean values. Even in the 20-second intervals, there are still some NA stepMean values, since on average only 1 to 2 neighbors are detected within that time window. Even with 40-second intervals, there are only an average of 3 neighbors. Strava, on the other hand, sends a signal every 2 seconds, which means that in a 10-second interval, the stepMean is already calculated from 5 neighbors; with Swisstopo, this happens every second, allowing stepMean to be calculated from 10 neighbors.
 
-F1 score across parameters (by App):
-- 5m immernoch scheisse, unabhängig von der app also Problem liegt wirklich an der Bufferwahl.
-- Posmo allgemein schlechter, aber 10 sek horror, weil zu wenig nachbarn für 10 sek temporal window. Viele NA stepMean Values, somit unbenutzbar, da nicht interpoliert wurde. Nur wenige Werte vorhanden, erkennt dadurch nur wenige Stops. Gleiches für 20 sek immernoch NA values weil zu wenig nachbarn, aber schon deutlich besser. Selbst bei 40 sek hat es höchstens nur 3 nachbarn. Swisstopo hingegen hat in 10 sek 10 werte für den stepMean, Strava 5. Daher besser. Problem lösbar durch lineare Interpolation, welche probiert wurde aber nicht geschafft wurde (war eig ursprüngliche Idee). 
+One possible solution to this problem is to use interpolation over a specific time interval, rather than calculating a stepMean based on existing values within a time interval. Interpolation makes it possible to create comparable time intervals across all apps, with coordinates being linearly interpolated and adjusted. The disadvantage is that, with long signal intervals such as in Posmo, interpolation can lead to inaccurate coordinate shifts. Interpolation was also the method originally chosen, but after several failed attempts, it was identified as a limitation of this study. Consequently, due to the alternative methodology, the results from apps like Posmo—which transmit signals at 15-second intervals—should be interpreted with caution or are in some cases meaningless, especially when a time interval contains an average of 0 to 1 data points.
 
-Result
-- Swisstopo schlechter als Strava bei kleineren Windows, obwohl es mehr Werte hat. Warum? in kleineren windows ist precision tiefer bei swisstopo, also mehr false positives, also echte stops nicht erkannt. Je höher dann der Window, desto viel höher die Nachbarszahl, also Precision wird höher. 
-- Posmo schlechter Recall bei 10sek, also hoher anteil an false negative, also viele falsche stops entdeckt. 
+@tbl-parameters-all-prov shows that both precision and recall improve with a longer time interval. @tbl-app-performance also reveals the app’s impact, showing that Posmo is significantly negatively affected by recall. This means that in 10-second intervals, the identification of all 15 existing waypoint buffers in Wollerau is very inaccurate, as it is complicated by the NA values. In this study, not only does recall have a negative impact on the F1 score, but precision does as well. In @tbl-app-performance, Swisstopo yields lower F1 scores at shorter time intervals. Recall remains equally good across time intervals, but precision varies. The smaller the time interval, the lower the F1 score, as fewer neighbors are available for determining correct stops, and the risk of identifying incorrect stops increases. This is not only the case for Swisstopo; according to @tbl-best-perf-tw, this behavior holds true regardless of the app.
 
-Interessanter Finding: 
-- Strava besser als Swisstopo (20:0), obwohl die Waypoints über Swisstopo erstellt wurden. 
-
-Endresultate (als argumentation in andern teilen nutzen):
-- mean und best F bei Strava, 20 perfekte F scores, mean bei posmo deutlich tiefer. (app summary)
-- je länger der window, desto besser der F1 weil mehr nachbarswerte für berechnung. (window_summary)
-- 15m buffer am besten, 10 auch gut, 5 für nichts, wegen entweder ungenauigkeit des GPS oder weil Stopplatz grösser als 5m ist und man für die übung mehr platz braucht. (buffer summary)
-- Cluster macht keinen unterschied. (cluster summary)
+It is particularly interesting that the waypoints were created using Swisstopo—which has the best sampling interval—yet Strava still delivers better F1 scores than Swisstopo in @tbl-app-best-performance. Strava even manages to achieve a perfect F1 score of 1 in 20 different combinations. In contrast, Posmo and Swisstopo never reach 1, with Swisstopo’s best value being 0.966. Since Strava was the only app used in Olten, it is possible that the running behavior in Olten was more suitable for the segmentation method—for example, longer breaks were taken during stops, or no interruptions occurred during the run, or just the App which was indeed the case. The only parameter that makes hardly any difference to the results in @tbl-best-perf-CD is the cluster selection. This is because FP data points are either very close to each other or far apart anyway. For this to make a difference, the cluster selection would have to be taken to the extreme.
 
 
-conclusion:
+##conclusion
+
 - je länger time window, desto mehr nachbarn können verwendet werden, um einen guten wert zu bekommen
 - 5m schlecht
 - posmo schlecht, vor allem bei 10 und 20 sek, wobei interpolation helfen könnte
