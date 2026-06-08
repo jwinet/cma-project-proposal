@@ -622,8 +622,8 @@ Posmo_2_40_stops_list <- stops(Posmo_2_processed_40, wp_wollerau_clean, max_dist
 ```{r}
 #| fig-width: 10
 #| fig-height: 11
-#| fig-cap: "Visualisation of the static events (with a time window of 10 seconds) inside the buffer for different cluster distances and buffer sizes for strava 1"
-#| label: fig-10s-strava1
+#| fig-cap: "Visualisation of the static events (with a time window of 10 seconds) inside the buffer for different cluster distances and buffer sizes for strava 2."
+#| label: fig-10s-strava2
 
 
 # plot the combinations of clustering and buffering around waypoint
@@ -642,7 +642,7 @@ plot_liste <- list()
 
 for (md in max_dist_liste) {
   
-  filtered <- Strava_1_10_stops_list |> 
+  filtered <- Strava_2_10_stops_list |> 
     filter(max_dist_setting == md)
   
   for (buf in wp_buffer_liste) {
@@ -673,7 +673,7 @@ for (md in max_dist_liste) {
 wrap_plots(plot_liste, ncol = 3) + 
   plot_layout(guides = "collect") + 
   plot_annotation(
-    title = "Strava 1 - 9 combinations of clustering and buffering around waypoints",
+    title = "Strava 2 - 9 combinations of clustering and buffering around waypoints",
     subtitle = "Temporal window for static events = 10 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
   )
 ```

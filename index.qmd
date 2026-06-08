@@ -17,6 +17,7 @@ bibliography: bibliography.bib
 
 library("sf")
 library("dplyr")
+library("units")
 library("purrr")
 library("slider")
 library("ggplot2")
@@ -70,6 +71,8 @@ forest_wollerau <- st_read("datasets/wald_selection_wollerau.gpkg", quiet = TRUE
 
 ```{r Clustering and comparing to different buffers}
 #| code-summary: Clustering and comparing to different buffers
+#| lst-label: lst-cluster-buffer
+#| lst-cap: Methods
 
 # clusters together points which are close together and compare them to the way point buffer
 
@@ -92,11 +95,11 @@ stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
     # calculates distance matrix for all points
     # distance and adjacency matrix for the current max_dist (md)
     dist_matrix <- st_distance(static_only)
-    adj_matrix <- dist_matrix <= units::set_units(md, "m")
+    adj_matrix <- dist_matrix <= set_units(md, "m")
     
     # give Cluster-IDs 
-    g <- igraph::graph_from_adjacency_matrix(adj_matrix, mode = "undirected")
-    static_only$cluster_id <- igraph::components(g)$membership
+    g <- graph_from_adjacency_matrix(adj_matrix, mode = "undirected")
+    static_only$cluster_id <- components(g)$membership
     
     # calculate centroids for specific max_dist
     current_centroids <- static_only |>
@@ -139,7 +142,7 @@ stops <- function(full_df, waypoints, max_dist_list, wp_buffer_list) {
         paste0("gt_id_md", md, "_b", wp_buffer_list)
       )
       
-      # Squash multiple tracking dots in the same physical buffer down to 1 row
+      # combine multiple tracking dots in the same physical buffer down to 1 row
       hits_cleaned <- hits |>
         group_by(.data[[anchor_id_col]]) |>
         summarise(
@@ -195,7 +198,7 @@ Swisstopo_2_30_stops_list <- stops(Swisstopo_2_processed_30, wp_wollerau_clean, 
 Posmo_1_30_stops_list <- stops(Posmo_1_processed_30, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
 Posmo_2_30_stops_list <- stops(Posmo_2_processed_30, wp_wollerau_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
 
-# add stops to 30 second windows
+# add stops to 40 second windows
 
 Strava_1_40_stops_list <- stops(Strava_1_processed_40, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
 Strava_2_40_stops_list <- stops(Strava_2_processed_40, wp_olten_clean, max_dist = max_dist_liste, wp_buffer = wp_buffer_liste)
@@ -217,20 +220,39 @@ Posmo_2_40_stops_list <- stops(Posmo_2_processed_40, wp_wollerau_clean, max_dist
 
 ### Data
 
-The Data was collected with the three different mobile apps Strava, Swisstopo and PosmoProject between the 20. Mai 2026 and the 24. Mai 2026. The Strava data was recorded for a Vitaparcours track in Olten on two different days. The data from Swisstopo and PosmoProject on the other hand were recorded on a track in Wollerau at the same time and also on two different days. The Strava and Swisstopo data recorded every second a point whereas the PosmoProject app did not recode in a continuous interval. 
-The ground truth point were recorded with the Swisstopo app as well because we could not find and datasets for the Vitaparcours online. The track in Olten consists of 14 stops and the track in Wollerau of 15.
+The data was collected with the three different mobile apps, Strava, Swisstopo and Posmo, between the 20th of May 2026 and the 24th of May 2026. The Strava data was recorded for a Vitaparcours track in Olten on two different days. The data from Swisstopo and Posmo, on the other hand, was recorded on a track in Wollerau at the same time and also on two different days. The Strava and Swisstopo data recorded every second a fix, whereas the Posmo app did not record at a continuous interval. 
+The ground truth points were recorded with the Swisstopo app as well because we could not find any datasets for the Vitaparcours online. The track in Olten consists of 14 stops and the track in Wollerau of 15.
 
 ### Preprocessing
 
-The data from Strava, Swisstopo and PosmoProject was imported, standardised and converter to the Europ/Zurich time zone. Furthermore, all coordinate geometries were transformed into the Swiss coordinate systems CH1903+ / LV95, to ensure accurate calculations. To isolate static events from the different trajectories, geometries were classified using an adaptive mean temporal window distance for four different windows (10, 20, 30 and 40 seconds) (@laube2011). For each point i, the algorithem calcualted the neighbouring coordinates within the window ($[t_{i} - \frac{w}{2}, t_{i} + \frac{w}{2}]$) and computed their mean spatial distance (stepMean_i). The average of all these spatial means was then used as a threshold to calculate points as either static (is_static = TRUE) if the stepMean_i was smaller than the threshold. The resulting 24 datasets were then finally exported as GeoPackage files and used for further analysis. These processes were done in the preprocessing file as they were computationally very heavy (***need to add Link***).
+The data from Strava, Swisstopo and Posmo were imported, standardised and converted to the Europe/Zurich time zone. Furthermore, all coordinate geometries were transformed into the Swiss coordinate systems CH1903+ / LV95 to ensure accurate calculations (***need to add Link to Preprocessing file***). 
+
+### Methods
+
+#### Isolating static events
+
+To isolate static events from the different trajectories, geometries were classified using an adaptive mean temporal window distance for four different windows (10, 20, 30 and 40 seconds) according to @laube2011. For each point i, the algorithm calculated the neighbouring coordinates within the window ($[t_{i} - \frac{w}{2}, t_{i} + \frac{w}{2}]$) and computed their mean spatial distance (stepMean_i). The average of all these spatial means was then used as a threshold to calculate points as static (is_static = TRUE) if the stepMean_i was smaller than the threshold. The resulting 24 datasets were then finally exported as GeoPackage files and used for further analysis (@fig-10-window, @fig-20-window, @fig-30-window and @fig-40-window). These processes were done in the preprocessing file, as they were computationally very heavy (***need to add Link to Preprocessing file***).
+
+#### Clustering static events and comparing them to different buffers 
+
+To identify and analyse single stationary events (stops) across the different tracking datasets, a spatial analysis workflow across multiple scales was implemented (@lst-cluster-buffer). This customised r function first filters static data points and applies a clustering mechanism based on distance to create one stop from multiple static fixes. To achieve this, points within a specific maximum distance threshold (5, 10 and 15 metres) are grouped together and their respective geometric centroids are calculated, resulting in one single stop per cluster.
+
+Furthermore, a distance analysis evaluates these centroids against the ground truth waypoint locations. Multiple distance buffers (5, 10 and 15 metres) are generated around the waypoints to identify spatial intersections between the ground truth stop buffers and the generated stops. To avoid having multiple stops and thus multiple true positives per buffer, the stops are further filtered. Multiple classified stops inside the different buffers are combined into a single stop inside the buffer using the centroid. This ensures data integrity and makes data analysis and interpretation easier to understand.
+
+This workflow dynamically tracks spatial attributes across different parameter combinations and generates structured spatial data frames. To further assess the temporal sensitivity, the entire analysis was repeated across the preprocessed datasets, which were segmented into four distinct temporal windows for capturing static events. This ensures a robust evaluation of spatial clustering behaviour across varying spatial and temporal scales.
+
+#### Performance metrics Precision, Recall and F1-score 
+
 
 
 ## Results
 
+@fig-10-window, @fig-20-window, @fig-30-window and @fig-40-window show the results of the static event identification for the four different temporal windows 10, 20, 30 and 40 seconds. Because the Posmo data was not captured in a continuous interval for some fixes in the temporal windows 10 and 20 seconds no neighbouring fixes were detected. These points are plotted as "Unknown" and could not be used for further analysis. 
+
 ```{r 10s Window}
 #| fig-width: 10
 #| fig-height: 11
-#| fig-cap: "Visualisation of the static events of all tracks with a time window of 10 seconds"
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 10 seconds."
 #| label: fig-10-window
 
 # Plot the static events
@@ -263,7 +285,7 @@ show_full_legend <- scale_color_manual(
   values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
   na.value = "grey",
   limits = c(TRUE, FALSE, NA), # <--- Keep this order
-  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  labels = c("Static", "Moving", "Unknown"), # <--- Match the order of limits exactly without names
   name = "Status"
 )
 
@@ -335,7 +357,7 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 ```{r 20s Window}
 #| fig-width: 10
 #| fig-height: 11
-#| fig-cap: "Visualisation of the static events of all tracks with a time window of 20 seconds"
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 20 seconds."
 #| label: fig-20-window
 
 # Plot the static events
@@ -361,7 +383,7 @@ show_full_legend <- scale_color_manual(
   values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
   na.value = "grey",
   limits = c(TRUE, FALSE, NA), # <--- Keep this order
-  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  labels = c("Static", "Moving", "Unknown"), # <--- Match the order of limits exactly without names
   name = "Status"
 )
 
@@ -415,7 +437,7 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 ```{r 30s Window}
 #| fig-width: 10
 #| fig-height: 11
-#| fig-cap: "Visualisation of the static events of all tracks with a time window of 30 seconds"
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 30 seconds."
 #| label: fig-30-window
 
 # Plot the static events
@@ -432,16 +454,14 @@ theme_x_cord <- list(
 # hide legend for the first 5 plots to prevent duplicates
 hide_legend <- scale_color_manual(
   values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
-  na.value = "grey",
   guide = "none"
 )
 
 # show full legend on the very last plot, forcing all 3 colors to display
 show_full_legend <- scale_color_manual(
   values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
-  na.value = "grey",
-  limits = c(TRUE, FALSE, NA), # <--- Keep this order
-  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  limits = c(TRUE, FALSE), # <--- Keep this order
+  labels = c("Static", "Moving"), # <--- Match the order of limits exactly without names
   name = "Status"
 )
 
@@ -486,7 +506,7 @@ p1 + p2 + p3 + p4 + p5 + p6 +
   plot_layout(ncol = 2, guides = "collect") +
   plot_annotation(
     title = "Static vs. Moving",
-    subtitle = "Time window of 20 seconds",
+    subtitle = "Time window of 30 seconds",
     theme = theme(plot.title = element_text(face = "bold", size = 14))
   ) 
 
@@ -495,7 +515,7 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 ```{r 40s Window}
 #| fig-width: 10
 #| fig-height: 11
-#| fig-cap: "Visualisation of the static events of all tracks with a time window of 40 seconds"
+#| fig-cap: "Visualisation of the static events of all tracks with a time window of 40 seconds."
 #| label: fig-40-window
 
 # Plot the static events
@@ -512,16 +532,14 @@ theme_x_cord <- list(
 # hide legend for the first 5 plots to prevent duplicates
 hide_legend <- scale_color_manual(
   values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
-  na.value = "grey",
   guide = "none"
 )
 
 # show full legend on the very last plot, forcing all 3 colors to display
 show_full_legend <- scale_color_manual(
   values = c("TRUE" = "darkgreen", "FALSE" = "#ADD8E666"),
-  na.value = "grey",
-  limits = c(TRUE, FALSE, NA), # <--- Keep this order
-  labels = c("Static", "Moving", "Unknown/Gap"), # <--- Match the order of limits exactly without names
+  limits = c(TRUE, FALSE), # <--- Keep this order
+  labels = c("Static", "Moving"), # <--- Match the order of limits exactly without names
   name = "Status"
 )
 
@@ -572,9 +590,69 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 
 ```
 
+@fig-10s-strava2 and @fig-30s-posmo1 show two examples for varying time windows and mobile apps of the visualised stop detection inside different buffer sizes computed with different cluster distances for the static events. 
+
+```{r Example: Strava 2 10s Window}
+#| fig-width: 8
+#| fig-height: 10
+#| fig-cap: "Visualisation of the static events (with a time window of 10 seconds) inside the buffer for different cluster distances and buffer sizes for strava 2."
+#| label: fig-10s-strava2
+
+
+# plot the combinations of clustering and buffering around waypoint
+
+theme_x_cord <- list(
+  coord_sf(datum = 2056),
+  theme_minimal(),
+  theme(
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
+    plot.title = element_text(size = 9, face = "bold"),
+    axis.title = element_blank()
+  )
+)
+
+plot_liste <- list()
+
+for (md in max_dist_liste) {
+  
+  filtered <- Strava_2_10_stops_list |> 
+    filter(max_dist_setting == md)
+  
+  for (buf in wp_buffer_liste) {
+    
+    current_col <- paste0("in_buf_md", md, "_b", buf)
+    
+    p <- ggplot() +
+      geom_sf(data = st_buffer(wp_olten_clean, buf), 
+              fill = "gray70", 
+              alpha = 0.50, 
+              color = NA) +
+      geom_sf(data = filtered, 
+              aes(color = as.character(.data[[current_col]])), 
+              size = 1) +
+      scale_color_manual(
+        values = c("1" = "darkgreen", "0" = "blue"),
+        labels = c("1" = "Hit (TP)", "0" = "False (FP)"),
+        drop = FALSE
+      ) +
+      labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), 
+           color = "Inside of the buffer") +
+      theme_x_cord
+    
+    plot_liste[[paste0("md", md, "_b", buf)]] <- p
+  }
+}
+
+wrap_plots(plot_liste, ncol = 3) + 
+  plot_layout(guides = "collect") + 
+  plot_annotation(
+    title = "Strava 2 - 9 combinations of clustering and buffering around waypoints",
+    subtitle = "Temporal window for static events = 10 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
+  )
+```
+
 ```{r Example: Posmo 1 30s Window}
 #| fig-width: 10
-#| fig-height: 8
 #| fig-cap: "Visualisation of the static events (with a time window of 30 seconds) inside the buffer for different cluster distances and buffer sizes for Posmo 1"
 #| label: fig-30s-posmo1
 
@@ -631,26 +709,20 @@ wrap_plots(plot_liste, ncol = 3) +
   )
 ```
 
+To compare the effectiveness of using different time windows to classify static events, various clustering distances to create single stops and different buffers around the waypoints @tbl-parameters-all-prov compares the performance of the different parameters for all three mobile apps together. The table shows for each parameter combination the total stops created (Total Stops Found),  stops correctly identified inside the buffer (TP), the stops identified outside of the buffer (FP) and the number of buffers for which no stops were detected (FN). Furthermore, the performance metrics precision ($\frac{TP}{TP+FP}$) and recall ($\frac{TP}{TP+FN}$) are calculated in the table and recall is used to highlight the 5 best (green) and 5 worst (red) performances. Overall 5 metre waypoint buffers detected the fewest stops inside the buffers and performed the worst. Waypoint buffers of 15 metres in connection with big temporal windows performed the best in detecting true stops as well as only having few false stops. 
+
 ```{r Parameter Table with Highlighting}
-#| tbl-cap: "Parameter Table evaluating out of maximum 88 possible ground truth waypoint targets across all combined tracking assets. The top 5 performing rows are highlighted in Green and the bottom 5 in Red."
+#| tbl-cap: "Parameter Table evaluating out of maximum 88 possible ground truth waypoint targets across all combined tracking apps. The top 5 performing rows for recall values are highlighted in green and the bottom 5 in red."
 #| label: tbl-parameters-all-prov
 
-
-
-# 1. Safe helper functions for dynamic column evaluation
+# helper functions for dynamic column evaluation
 extract_sum <- function(df, md, buf, val) {
   col_name <- paste0("in_buf_md", md, "_b", buf)
   if (!col_name %in% colnames(df)) return(0)
   sum(df[[col_name]] == val, na.rm = TRUE)
 }
 
-extract_distinct <- function(df, md, buf) {
-  col_name <- paste0("gt_id_md", md, "_b", buf)
-  if (!col_name %in% colnames(df)) return(0)
-  dplyr::n_distinct(df[[col_name]], na.rm = TRUE)
-}
-
-# 2. Master function to process a dataset
+# function to process a dataset
 get_all_permutations <- function(df, app_name, track_id, window_sec, total_gt) {
   if (nrow(df) == 0) return(data.frame())
   distances <- c(5, 10, 15)
@@ -660,7 +732,9 @@ get_all_permutations <- function(df, app_name, track_id, window_sec, total_gt) {
   map_dfr(1:nrow(param_grid), function(i) {
     md  <- param_grid$Max_Dist[i]
     buf <- param_grid$WP_Buffer[i]
-    df_sub <- df |> filter(max_dist_setting == md)
+    df_sub <- df |> 
+      filter(max_dist_setting == md)
+    
     if (nrow(df_sub) == 0) return(data.frame())
     
     data.frame(
@@ -672,23 +746,23 @@ get_all_permutations <- function(df, app_name, track_id, window_sec, total_gt) {
       Total_Stops = nrow(df_sub),
       True_Pos    = extract_sum(df_sub, md, buf, TRUE),
       False_Pos   = extract_sum(df_sub, md, buf, FALSE),
-      Captured    = extract_distinct(df_sub, md, buf),
       Total_GT    = total_gt
     )
   })
 }
 
-# 3. Explicit ground truth variables
+# explicit ground truth variables
 gt_strava_t1 <- nrow(wp_olten_clean)    # 14
 gt_strava_t2 <- nrow(wp_olten_clean)    # 14
 gt_swiss_t1  <- nrow(wp_wollerau_clean) # 15
 gt_swiss_t2  <- nrow(wp_wollerau_clean) # 15
 gt_posmo_t1  <- nrow(wp_wollerau_clean) # 15
 gt_posmo_t2  <- nrow(wp_wollerau_clean) # 15
-# Maximum possible waypoints to detect across all 6 tracks combined = 88
+
+# maximum possible waypoints to detect across all 6 tracks combined
 MAX_GLOBAL_GT <- (14 * 2) + (15 * 4) 
 
-# 4. Run calculations over the 24 clean datasets
+# run calculations over the 24 clean datasets
 master_raw_metrics <- bind_rows(
   get_all_permutations(Strava_1_10_stops_list, "Strava", "T1", 10, gt_strava_t1),
   get_all_permutations(Strava_2_10_stops_list, "Strava", "T2", 10, gt_strava_t2),
@@ -719,7 +793,7 @@ master_raw_metrics <- bind_rows(
   get_all_permutations(Posmo_2_40_stops_list, "Posmo", "T2", 40, gt_posmo_t2)
 )
 
-# 5. Corrected Mathematical Aggregation
+# corrected mathematical aggregation
 global_parameter_table <- master_raw_metrics |>
   group_by(Window, Max_Dist, WP_Buffer) |>
   summarise(
@@ -727,39 +801,44 @@ global_parameter_table <- master_raw_metrics |>
     True_Positives     = sum(True_Pos),
     False_Positives    = sum(False_Pos),
     
-    # Core Fixes:
-    # Waypoints Successfully Detected (capped strictly at max 88)
-    Waypoints_Hit      = sum(Captured),
     # False Negatives = Total available ground truth points (88) minus the ones we successfully hit
-    False_Negatives    = MAX_GLOBAL_GT - Waypoints_Hit,
-    # Detection Rate = What % of the 88 locations did the algorithm find
-    Avg_Detection_Rate = round((Waypoints_Hit / MAX_GLOBAL_GT) * 100, 1),
+    False_Negatives    = MAX_GLOBAL_GT - True_Positives,
+    
+    # Precision and recall 
+    Detection_Precision = round((True_Positives / (True_Positives + False_Positives)) * 100, 1),
+    Detection_Recall = round((True_Positives / MAX_GLOBAL_GT) * 100, 1),
     .groups = "drop"
   ) |>
   arrange(Window, Max_Dist, WP_Buffer)
 
-# 6. Rank performances contextually behind the scenes
+# rank performances
 ranked_indices <- global_parameter_table |>
   mutate(row_id = row_number()) |>
-  arrange(desc(Avg_Detection_Rate), False_Positives)
+  arrange(desc(Detection_Recall), False_Positives)
 
 top_5_rows    <- head(ranked_indices$row_id, 5)
 bottom_5_rows <- tail(ranked_indices$row_id, 5)
 
-# 7. Render Styled Chronological Table
+# render table
 global_parameter_table |>
-  select(Window, Max_Dist, WP_Buffer, Total_Stops_Found, True_Positives, False_Positives, False_Negatives, Avg_Detection_Rate) |>
+  select(Window, Max_Dist, WP_Buffer, Total_Stops_Found, True_Positives, False_Positives, False_Negatives, Detection_Precision, Detection_Recall) |>
   knitr::kable(
     format = "html",
-    col.names = c("Time Window", "Clustering Max Dist (m)", "Waypoint Buffer (m)", "Total Stops Found", "True Positives (TP)", "False Positives (FP)", "False Negatives (FN)", "Stops detected inside buffer (%)")
+    col.names = c("Time Window", "Maximal Clustering Distance (m)", "Waypoint Buffer (m)", "Total Stops Found", "True Positives (TP)", "False Positives (FP)", "False Negatives (FN)", "Precision (%)", "Recall (%)")
   ) |>
   kable_styling(bootstrap_options = c("striped", "hover", "condensed")) |>
   row_spec(top_5_rows, background = "#d4edda", extra_css = "font-weight: bold; color: #155724;") |>
   row_spec(bottom_5_rows, background = "#f8d7da", extra_css = "color: #721c24;")
 ```
 
-```{r}
+Form the precision and recall values we can calculate The F1-score $F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$ which is a further indication of performance. @fig-F1-together shows this F1-score for all the apps together and @fig-F1-by-App shows the F1-scores more precisely for each app. @fig-F1-together underlines the results of @tbl-parameters-all-prov that for all apps combined the 5 metre waypoint buffer performs the worst in and especially in connection with a 10 seconds time window to detect static events. The figure further highlights that the 15 metres waypoint buffer in connection with a big temporal window for static events and rather higher maximal clustering distances perform the best.
 
+```{r F1 score for all}
+#| fig-width: 8
+#| fig-cap: "Visualisation of F1 score for the different parameters across all combined tracking apps."
+#| label: fig-F1-together
+
+  
 global_parameter_table <- global_parameter_table |>
   mutate(
     Precision = True_Positives / (True_Positives + False_Positives),
@@ -776,14 +855,26 @@ global_parameter_table <- global_parameter_table |>
 ggplot(global_parameter_table, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
   geom_tile(color = "black", linewidth = 0.1) +
   facet_wrap(~ Window) +
-  scale_fill_gradient(low = "red", high = "blue") +
-  labs(title = "F1 Score across Parameters", fill = "F1")
+  scale_fill_gradient(low = "red", high = "blue", limits = c(0, 1)) +
+  labs(title = "F1 Score across Parameters", 
+       x = "Maximal Clustering Distance (m)",
+       y = "Waypoint Buffer Size (m)",
+       fill = "F1")
+
+```
+
+@fig-F1-by-App indicates that the Strava app performs overall the best where as Posmo on the other hand performs very bad especially for the 10 seconds time window. This is also further highlighted in @tbl-app-performance. 
+
+```{r F1 score by App}
+#| fig-width: 8
+#| fig-cap: "Visualisation of F1 score for the different parameters for all apps seperatly."
+#| label: fig-F1-by-App
 
 add_metrics <- function(df) {
   df |>
     mutate(
       Precision = True_Pos / (True_Pos + False_Pos),
-      Recall    = Captured / Total_GT,
+      Recall    = True_Pos / Total_GT,
       
       F1 = ifelse(
         (Precision + Recall) == 0,
@@ -797,68 +888,133 @@ master_apps <- add_metrics(master_raw_metrics)
 ggplot(master_apps, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
   geom_tile(color = "black", linewidth = 0.1) +
   facet_grid(App ~ Window) +
-  scale_fill_gradient(low = "red", high = "blue") +
+  scale_fill_gradient(low = "red", high = "blue", limits = c(0, 1)) +
   labs(
     title = "F1 Score across Parameters (by App)",
-    x = "Max Distance (m)",
-    y = "Waypoint Buffer (m)",
+    x = "Maximal Clustering Distance (m)",
+    y = "Waypoint Buffer Size (m)",
     fill = "F1"
+  ) 
+
+```
+
+```{r Mean precision and recall metrics}
+#| tbl-cap: "Mean precision and recall metrics grouped by tracking application and time window settings."
+#| label: tbl-app-performance
+
+result_all <- master_apps  |> 
+  group_by(App, Window) |>
+  summarise(
+    precision_mean = round(mean(Precision, na.rm = TRUE), 3),
+    recall_mean = round(mean(Recall, na.rm = TRUE), 3),
+    F1_mean = round(mean(F1, na.rm = TRUE), 3),
+    .groups = "drop"
+  ) |>
+  arrange(App, Window)
+
+result_all |>
+  knitr::kable(
+    format = "html",
+    col.names = c("Application", "Time Window", "Mean Precision", "Mean Recall", "Mean F1-score"),
+    align = c("l", "c", "r", "r") # Left, Center, Right, Right alignment
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed", "responsive"),
+    full_width = FALSE
   )
 
+```
 
-result_all <- master_apps %>%
-  group_by(App, Window) %>%
+However the best F1-scores for Posmo and Swisstopo were not achieved for the 30 seconds time window but rather the 30 seconds time window with a 10 metre clustering distance (@tbl-app-best-performance). 
+
+```{r Top performance for each app}
+#| tbl-cap: "Summary of F1-Scores per tracking app, showing the best performance alongside its optimal parameters, dataset averages and the amount of perfect performances per app. Strava shows multiple top performanece and the Best F1-score therefore only shows one example of a possible parameter combination for a perfect F1-score."
+#| label: tbl-app-best-performance
+
+app_summary <- master_apps |>
+  group_by(App) |>
   summarise(
-    precision_mean = mean(Precision, na.rm = TRUE),
-    recall_mean = mean(Recall, na.rm = TRUE),
+    # Find the index of the highest F1 score for this app
+    best_idx = which.max(F1),
+    
+    # Extract the highest F1 value
+    max_val  = round(F1[best_idx], 3),
+    
+    # Extract the matching parameter values
+    win    = Window[best_idx],
+    b_dist   = Max_Dist[best_idx],
+    b_buf    = WP_Buffer[best_idx],
+    
+    # Combine them into a clean string: "Value (Window, Dist, Buffer)"
+    Best_F1  = paste0(max_val, " (", win, ", ", b_dist, "m, ", b_buf, "m)"),
+    
+    # Calculate the remaining metrics
+    Mean_F1          = round(mean(F1, na.rm = TRUE), 3),
+    Perfect_Score_N  = sum(F1 == 1, na.rm = TRUE),
     .groups = "drop"
-  ) %>%
-  arrange(App, Window)
-result_all
+  ) |>
+  # Drop the temporary helper columns used for extraction
+  select(App, Best_F1, Mean_F1, Perfect_Score_N)
+
+app_summary |>
+  knitr::kable(
+    format = "html",
+    col.names = c("Application", "Best F1-Score (Time Window	Clustering, Maximal Clustering Distance, Waypoint Buffer)", "Mean F1-Score", "Perfect Setups (F1 = 1)"),
+    align = c("l", "l", "r", "c", "c") # Changed second column to left-align for text readability
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c("striped", "hover", "condensed"),
+    full_width = FALSE
+  )
+```
+
+Grouping the results for the different parameters separately it is further highlighted that the 30 and 40 seconds windows create the best F-1 scores (@tbl-best-perf-tw). The different clustering distances on the other hand seem to not have a big influence on the F1-score where as the buffer size of 5 metres results in significantly lower overall F1-scores as already mentioned abpve (@tbl-best-perf-CD and @tbl-best-perf-buff). 
+
+::: {#tbl-panel layout-ncol=3}
+
+```{r}
+#| tbl-cap: "Average perfromance for each time window."
+#| label: tbl-best-perf-tw
+
+master_apps  |> 
+  group_by(Window) |>
+  summarise(
+    mean_F1 = mean(F1, na.rm = TRUE),
+    .groups = "drop"
+  ) |> 
+  knitr::kable(format = "html", col.names = c("Window", "Mean F1"))
 ```
 
 ```{r}
+#| tbl-cap: "Avereage perfrormance for each clustering distance."
+#| label: tbl-best-perf-CD
 
-app_summary <- master_apps %>%
-  group_by(App) %>%
-  summarise(
-    best_F1 = max(F1, na.rm = TRUE),
-    mean_F1 = mean(F1, na.rm = TRUE),
-    count_F1_equal_1 = sum(F1 == 1, na.rm = TRUE)
-  ) %>%
-  ungroup()
-
-
-Window_summary <- master_apps %>%
-  group_by(Window) %>%
+master_apps |>
+  group_by(Max_Dist) |>
   summarise(
     mean_F1 = mean(F1, na.rm = TRUE),
     .groups = "drop"
-  )
+  ) |> 
+  knitr::kable(format = "html", col.names = c("Max Dist (m)", "Mean F1"))
+```
 
+```{r}
+#| tbl-cap: "Avereage perfrormance for each waypoint buffer size."
+#| label: tbl-best-perf-buff
 
-Buffer_summary <- master_apps %>%
-  group_by(WP_Buffer) %>%
+master_apps |>
+  group_by(WP_Buffer) |>
   summarise(
     mean_F1 = mean(F1, na.rm = TRUE),
     .groups = "drop"
-  )
-
-
-Cluster_summary <- master_apps %>%
-  group_by(Max_Dist) %>%
-  summarise(
-    mean_F1 = mean(F1, na.rm = TRUE),
-    .groups = "drop"
-  )
-
-
-app_summary
-Window_summary
-Buffer_summary
-Cluster_summary
+  ) |> 
+  knitr::kable(format = "html", col.names = c("Buffer (m)", "Mean F1"))
 
 ```
+
+Top performance for all the different parameters separately.
+:::
+
 
 ## Discussion
 
