@@ -1904,13 +1904,10 @@ Table&nbsp;4: Top performance for all the different parameters separately.
 <p>One possible solution to this problem is to use interpolation over a specific time interval, rather than calculating a stepMean based on existing values within a time interval. Interpolation makes it possible to create comparable time intervals across all apps, with coordinates being linearly interpolated and adjusted. The disadvantage is that, with long signal intervals such as in Posmo, interpolation can lead to inaccurate coordinate shifts. Interpolation was also the method originally chosen, but after several failed attempts, it was identified as a limitation of this study. Consequently, due to the alternative methodology, the results from apps like Posmo—which transmit signals at 15-second intervals—should be interpreted with caution or are in some cases meaningless, especially when a time interval contains an average of 0 to 1 data points.</p>
 <p><a href="#tbl-parameters-all-prov" class="quarto-xref">Table&nbsp;1</a> shows that both precision and recall improve with a longer time interval. <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a> also reveals the app’s impact, showing that Posmo is significantly negatively affected by recall. This means that in 10-second intervals, the identification of all 15 existing waypoint buffers in Wollerau is very inaccurate, as it is complicated by the NA values. In this study, not only does recall have a negative impact on the F1 score, but precision does as well. In <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a>, Swisstopo yields lower F1 scores at shorter time intervals. Recall remains equally good across time intervals, but precision varies. The smaller the time interval, the lower the F1 score, as fewer neighbors are available for determining correct stops, and the risk of identifying incorrect stops increases. This is not only the case for Swisstopo; according to <a href="#tbl-best-perf-tw" class="quarto-xref">Table&nbsp;4 (a)</a>, this behavior holds true regardless of the app.</p>
 <p>It is particularly interesting that the waypoints were created using Swisstopo—which has the best sampling interval—yet Strava still delivers better F1 scores than Swisstopo in <a href="#tbl-app-best-performance" class="quarto-xref">Table&nbsp;3</a>. Strava even manages to achieve a perfect F1 score of 1 in 20 different combinations. In contrast, Posmo and Swisstopo never reach 1, with Swisstopo’s best value being 0.966. Since Strava was the only app used in Olten, it is possible that the running behavior in Olten was more suitable for the segmentation method—for example, longer breaks were taken during stops, or no interruptions occurred during the run, or just the App which was indeed the case. The only parameter that makes hardly any difference to the results in <a href="#tbl-best-perf-CD" class="quarto-xref">Table&nbsp;4 (b)</a> is the cluster selection. This is because FP data points are either very close to each other or far apart anyway. For this to make a difference, the cluster selection would have to be taken to the extreme.</p>
-<p>##conclusion</p>
-<ul>
-<li>je länger time window, desto mehr nachbarn können verwendet werden, um einen guten wert zu bekommen</li>
-<li>5m schlecht</li>
-<li>posmo schlecht, vor allem bei 10 und 20 sek, wobei interpolation helfen könnte</li>
-<li>Strava sehr gut</li>
-</ul>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>The results of this analysis were generated using F1 scores. Several distinct patterns are evident. The buffer radius around the waypoints should not be too small, as otherwise GPS inaccuracies will have a significant impact or the exercise will require more space. Therefore, 5 meters is not suitable as a buffer. Clusters, on the other hand, are resilient to changes in size as long as they are not taken to extremes, since error points are either very close together or very far apart. The chosen method of calculating stepMean values from neighbors at different time intervals ensures that longer time intervals, such as 30 or 40 seconds, yield more accurate results, since more neighbors are included in the calculation. Furthermore, this has negative consequences for Posmo, since a signal is sent only every 15 seconds, and in short intervals such as 10 seconds, there are not enough neighbors to perform a calculation within that interval. Interpolation could solve this methodological problem. In contrast, Strava shows the best F1-scores, followed by Swisstopo, as both apps send signals every 1 to 2 seconds.</p>
 </section>
 <section id="appendix" class="level2">
 <h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
@@ -1930,7 +1927,7 @@ Table&nbsp;4: Top performance for all the different parameters separately.
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>wordcountaddin<span class="sc">::</span><span class="fu">word_count</span>(<span class="st">"index.qmd"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 1925</code></pre>
+<pre><code>[1] 2072</code></pre>
 </div>
 </div>
 
