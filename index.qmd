@@ -1,6 +1,6 @@
 ---
-title: Stop detection in Vitaparcours movement data using segmentation algorithms
-subtitle: A subtle subtitle
+title: Stop Detection in Vitaparcours Movement Data
+subtitle: Using segmentation algorithems, clustering algorithems and buffering around the gorund truth points to classify stops
 author: Judith Winet and Rodrigo Nogueira Silva
 format:
   html:
@@ -9,11 +9,168 @@ execute:
   warning: false
   message: false
 lang: en  # switch to "de" if you write your report in german
+toc: true
+toc-depth: 4
 bibliography: bibliography.bib
 ---
 
 ```{r preprocessing}
 #| code-summary: preprocessing
+#| eval: false
+#| echo: false
+
+library("leaflet")
+library("readr")
+library("sf")
+library("dplyr")
+library("lubridate")
+library("zoo")
+library("purrr")
+library("stringr")
+
+# Vitaparcours Data created: 04.06.2026
+
+## STRAVA Vita 1 Olten 
+Strava_1 <- read_delim("datasets/Vita_1/track_points.csv", ",") # load data
+
+Strava_1 <- st_as_sf(
+  Strava_1,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+Strava_1$time <- with_tz(as.POSIXct(Strava_1$time, tz = "UTC"), tz="Europe/Zurich") # convert to our time zone
+
+## STRAVA Vita 2 Olten 
+Strava_2 <- read_delim("datasets/Vita_2/track_points.csv", ",") # load data
+
+Strava_2 <- st_as_sf(
+  Strava_2,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+Strava_2$time <- with_tz(as.POSIXct(Strava_2$time, tz = "UTC"), tz="Europe/Zurich") # convert to our time zone
+
+## Waypoints Olten
+wp_olten <- read_delim("datasets/Olten_Waypoints/Waypoints.csv", ",") # load data
+
+wp_olten <- st_as_sf(
+  wp_olten,
+  coords = c("X", "Y"),
+  crs = 2056, remove = FALSE) # creat geometry variable
+
+wp_olten_coords <- st_coordinates(wp_olten) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+wp_olten$X <- wp_olten_coords[, 1]
+wp_olten$Y <- wp_olten_coords[, 2]
+
+## Swisstopo 1 Wollerau 
+Swisstopo_1 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260521.gpx", layer = "track_points") # load data
+
+Swisstopo_1 <- st_transform(Swisstopo_1, crs = 2056) # transform geometry variable
+
+Swisstopo_1_coords <- st_coordinates(Swisstopo_1) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+Swisstopo_1$X <- Swisstopo_1_coords[, 1]
+Swisstopo_1$Y <- Swisstopo_1_coords[, 2]
+
+## Swisstopo 2 Wollerau 
+Swisstopo_2 <- st_read("datasets/Wollerau/Vitaparcours_wollerau_20260524.gpx", layer = "track_points") # load data
+
+Swisstopo_2 <- st_transform(Swisstopo_2, crs = 2056) # transform geometry variable
+
+Swisstopo_2_coords <- st_coordinates(Swisstopo_2) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+Swisstopo_2$X <- Swisstopo_2_coords[, 1]
+Swisstopo_2$Y <- Swisstopo_2_coords[, 2]
+
+## Waypoints Wollerau
+wp_wollerau <- st_read("datasets/Wollerau/Waypoint_wollerau_20260521.gpx", layer = "waypoints") # load data
+
+wp_wollerau <- st_transform(wp_wollerau, crs = 2056) # transform geometry variable
+
+wp_wollerau_coords <- st_coordinates(wp_wollerau) # extract  coordinates out of the geometry column
+
+# assign them to your new X and Y columns
+wp_wollerau$X <- wp_wollerau_coords[, 1]
+wp_wollerau$Y <- wp_wollerau_coords[, 2]
+
+wp_wollerau <- wp_wollerau[wp_wollerau$desc != "Start", ] # remove start coordinate
+
+## Posmo 1 Wollerau 
+Posmo_1 <- read_delim("datasets/Wollerau/posmo_20260521.csv", ",")  # load data
+
+### create same collumn nmaes
+
+names(Posmo_1)[names(Posmo_1) == "lon_x"] <- "X"
+names(Posmo_1)[names(Posmo_1) == "lat_y"] <- "Y"
+
+names(Posmo_1)[names(Posmo_1) == "datetime"] <- "time"
+
+Posmo_1 <- Posmo_1 |> 
+  st_as_sf(coords = c("X", "Y"), crs = 4326, remove = FALSE) |> 
+  mutate(time = with_tz(time, tzone = "Europe/Zurich")) |>
+  filter(
+    time>= as.POSIXct("2026-05-21 16:14:55", tz = "Europe/Zurich"),
+    time < as.POSIXct("2026-05-21 17:09:19", tz = "Europe/Zurich")
+  ) # creat geometry variable and filter only vitaparcours tracks with the time 
+
+Posmo_1 <- st_transform(Posmo_1, 2056) # transfrom to swiss coordinates
+
+Posmo_1[, c("X", "Y")] <- st_coordinates(Posmo_1)
+
+## Posmo 2 Wollerau
+Posmo_2 <- read_delim("datasets/Wollerau/posmo_20260524.csv", ",") # load data
+
+### create same collumn nmaes
+
+names(Posmo_2)[names(Posmo_2) == "lon_x"] <- "X"
+names(Posmo_2)[names(Posmo_2) == "lat_y"] <- "Y"
+
+names(Posmo_2)[names(Posmo_2) == "datetime"] <- "time"
+
+Posmo_2 <- Posmo_2 |> 
+  st_as_sf(coords = c("X","Y"), crs = 4326, remove = FALSE) |> 
+  mutate(time = with_tz(time, tzone = "Europe/Zurich")) |>
+  filter(
+    time>= as.POSIXct("2026-05-24 09:13:46", tz = "Europe/Zurich"),
+    time < as.POSIXct("2026-05-24 10:00:43", tz = "Europe/Zurich")
+  ) # creat geometry variable and filter only vitaparcours track with the time 
+
+Posmo_2 <- st_transform(Posmo_2, 2056) # transform geometry to swiss coordinates
+
+Posmo_2[, c("X", "Y")] <- st_coordinates(Posmo_2) # # transform X and Y to swiss coordinates
+
+# Save all the tracks as new datasets
+
+## define a clean and save function
+save_spatial_gpkg <- function(df, file_name) {
+  # Strip columns that are 100% NA
+  df_cleaned <- df %>% select(where(~ !all(is.na(.))))
+  
+  # Set up path to datasets/cleaned
+  output_path <- file.path("datasets", "cleaned", paste0(file_name, ".gpkg"))
+  
+  # Write file (overwrites existing files cleanly)
+  st_write(df_cleaned, output_path, delete_dsn = TRUE, quiet = TRUE)
+  
+  message("Saved: ", output_path)
+  return(df_cleaned)
+}
+
+## Save the cleaned datasets
+Strava_1_clean   <- save_spatial_gpkg(Strava_1, "Strava_1_Olten")
+
+
+``` 
+
+```{r Clustering and comparing to different buffers}
+#| code-summary: Clustering and comparing to different buffers
+#| lst-label: lst-cluster-buffer
+#| lst-cap: Methods
+
 
 library("sf")
 library("dplyr")
@@ -64,15 +221,6 @@ Posmo_2_processed_40     <- st_read("datasets/cleaned/static/Posmo_2_processed_4
 
 wp_olten_clean    <- st_read("datasets/cleaned/Waypoints_Olten.gpkg", quiet = TRUE)
 wp_wollerau_clean <- st_read("datasets/cleaned/Waypoints_Wollerau.gpkg", quiet = TRUE)
-
-forest_wollerau <- st_read("datasets/wald_selection_wollerau.gpkg", quiet = TRUE)
-
-``` 
-
-```{r Clustering and comparing to different buffers}
-#| code-summary: Clustering and comparing to different buffers
-#| lst-label: lst-cluster-buffer
-#| lst-cap: Methods
 
 # clusters together points which are close together and compare them to the way point buffer
 
@@ -212,42 +360,60 @@ Posmo_2_40_stops_list <- stops(Posmo_2_processed_40, wp_wollerau_clean, max_dist
 
 ## Abstract
 
+
+
 ## Introduction
 
-@laube2011 investigate how temporal scale affects the calculation of movement parameters (speed, sinuosity and turning angle) of animal trajectories. 
+The field of Computational Movement Analysis (CMA) has emerged in response to the growing volumes of tracking data. It helps to develop the tools which are necessary to extract meaningful patterns and behaviours from raw location data [@laube2014computational]. A significant part of this process is segmentation, which divides movement paths into segments, such as "stops" and "moves", in order to make the data easier to analyse and interpret [@laube2014computational].
+
+This project investigates the effectiveness of the segmentation algorithm used by @laube2011 for detecting exercise stops along Vitaparcours tracks. In their article, @laube2011 used movement data from animals and removed the static segments, whereas this project aims to use exactly these static events for stop detection. 
+
+A further significant challenge in movement analysis is what researchers call "Granularity Grief", where the results of the analysis are influenced by the temporal scale or sampling frequency of the tracking device [@laube2011]. This project aims to address this issue by comparing trajectories recorded by three different mobile apps (PosmoProject, Strava and Swisstopo). By evaluating how the different sampling regimes impact stop detection, the study aims to quantify the robustness of stop detection across variable data qualities.
+
+### Reserch Questions
+
+- Can Vitaparcours exercise stops be efficiently detected in movement data from different providers using the segmentation algorithm described in @laube2011?
+- How well do modelled exercise stops match the real location of these stops for movement trajectories from different providers?
+- How do the temporal windows used to determine static events, the clustering distances of static points to one stop and the buffer size around the ground truth waypoints influence detection accuracy?
 
 ## Material and Methods
 
 ### Data
 
-The data was collected with the three different mobile apps, Strava, Swisstopo and Posmo, between the 20th of May 2026 and the 24th of May 2026. The Strava data was recorded for a Vitaparcours track in Olten on two different days. The data from Swisstopo and Posmo, on the other hand, was recorded on a track in Wollerau at the same time and also on two different days. The Strava and Swisstopo data recorded every second a fix, whereas the Posmo app did not record at a continuous interval. 
-The ground truth points were recorded with the Swisstopo app as well because we could not find any datasets for the Vitaparcours online. The track in Olten consists of 14 stops and the track in Wollerau of 15.
+The data for this project was collected using three different mobile apps (Strava, Swisstopo and PosmoProject) between the 20 and 24 May 2026. The Strava data was recorded on a Vitaparcours track in Olten, on two separate days. The data from Swisstopo and PosmoProject, on the other hand, was recorded on a track in Wollerau, at the same time and also on two different days. The Strava and Swisstopo apps recorded a fix every second, whereas the PosmoProject app did not record at a continuous interval. 
+Ground truth points were also recorded with the Swisstopo app, because no Vitaparcours stops datasets could be found online. The track in Olten consists of 14 stops, while the track in Wollerau has 15.
 
 ### Preprocessing
 
-The data from Strava, Swisstopo and Posmo were imported, standardised and converted to the Europe/Zurich time zone. Furthermore, all coordinate geometries were transformed into the Swiss coordinate systems CH1903+ / LV95 to ensure accurate calculations (***need to add Link to Preprocessing file***). 
+Before any analysis can begin, the raw data needs to be pre-processed to make it comparable and easier to handle. For this project, the data from Strava, Swisstopo and PosmoProject were first imported, standardised and converted to the Europe/Zurich time zone. Furthermore, all coordinate geometries were transformed into the Swiss coordinate systems CH1903+/LV95, to ensure accurate calculations (***need to add link to Preprocessing file***). 
 
 ### Methods
 
-#### Isolating static events
+#### Isolating Static Events
 
-To isolate static events from the different trajectories, geometries were classified using an adaptive mean temporal window distance for four different windows (10, 20, 30 and 40 seconds) according to @laube2011. For each point i, the algorithm calculated the neighbouring coordinates within the window ($[t_{i} - \frac{w}{2}, t_{i} + \frac{w}{2}]$) and computed their mean spatial distance (stepMean_i). The average of all these spatial means was then used as a threshold to calculate points as static (is_static = TRUE) if the stepMean_i was smaller than the threshold. The resulting 24 datasets were then finally exported as GeoPackage files and used for further analysis (@fig-10-window, @fig-20-window, @fig-30-window and @fig-40-window). These processes were done in the preprocessing file, as they were computationally very heavy (***need to add Link to Preprocessing file***).
+To isolate static events from the different trajectories, geometries were classified using an adaptive mean temporal window distance for four windows of different sizes (10, 20, 30 and 40 seconds), as described by @laube2011. For each point i, the algorithm calculated the neighbouring coordinates within the window ($[t_{i} - \frac{w}{2}, t_{i} + \frac{w}{2}]$) and computed their mean spatial distance (stepMean_i). The average of these spatial means was then used as a threshold to identify static points (is_static = TRUE), if stepMean_i was smaller than the threshold. The resulting 24 datasets were finally exported as GeoPackage files for further analysis (@fig-10-window, @fig-20-window, @fig-30-window and @fig-40-window). These processes were carried out in the preprocessing file, as they were computationally very heavy (***need to add Link to Preprocessing file***).
 
-#### Clustering static events and comparing them to different buffers 
+#### Clustering Static Events and Comparing them to Different Buffers 
 
-To identify and analyse single stationary events (stops) across the different tracking datasets, a spatial analysis workflow across multiple scales was implemented (@lst-cluster-buffer). This customised r function first filters static data points and applies a clustering mechanism based on distance to create one stop from multiple static fixes. To achieve this, points within a specific maximum distance threshold (5, 10 and 15 metres) are grouped together and their respective geometric centroids are calculated, resulting in one single stop per cluster.
+To identify and analyse individual stationary events (stops) across different tracking datasets, a spatial analysis workflow was implemented at multiple scales (@lst-cluster-buffer). This customised R function first filters static data points and applies a clustering mechanism based on distance, creating one stop from multiple static fixes. Points within a maximum distance threshold of 5, 10 or 15 metres are grouped together and their respective geometric centroids are calculated to produce one stop per cluster.
 
-Furthermore, a distance analysis evaluates these centroids against the ground truth waypoint locations. Multiple distance buffers (5, 10 and 15 metres) are generated around the waypoints to identify spatial intersections between the ground truth stop buffers and the generated stops. To avoid having multiple stops and thus multiple true positives per buffer, the stops are further filtered. Multiple classified stops inside the different buffers are combined into a single stop inside the buffer using the centroid. This ensures data integrity and makes data analysis and interpretation easier to understand.
+Furthermore, a distance analysis evaluates these centroids against the ground truth waypoint locations. Multiple distance buffers (5, 10 and 15 metres) are then generated around the waypoints, in order to identify spatial intersections between the ground truth stop buffers and the generated stops. To avoid having multiple stops and thus multiple true positives, per buffer, the stops are further filtered. Multiple classified stops within the buffers are combined into a single stop inside a buffer, using the centroid. This ensures data consistency and simplifies data analysis and interpretation.
 
-This workflow dynamically tracks spatial attributes across different parameter combinations and generates structured spatial data frames. To further assess the temporal sensitivity, the entire analysis was repeated across the preprocessed datasets, which were segmented into four distinct temporal windows for capturing static events. This ensures a robust evaluation of spatial clustering behaviour across varying spatial and temporal scales.
+This workflow dynamically tracks spatial attributes across different parameter combinations and generates structured, spatial data frames. To further assess temporal sensitivity, the entire analysis was repeated using the preprocessed datasets, segmented with four distinct temporal windows to capture static events. This ensures a robust evaluation of spatial clustering behaviour across varying spatial and temporal scales.
 
-#### Performance metrics Precision, Recall and F1-score 
+#### Performance Metrics (Precision, Recall and F1-score)
 
+In the following, precision, recall and the F1-score are used to evaluate the classification performance of the stop detection. These concepts are closely connected to the concepts of Error of Omission (EOO) and Error of Commission (EOC), concepts used in movement pattern analysis [@laube2014computational]. EOO, also known as false negative (FN), refers to "missed patterns", in our case ground truth patterns that the algorithm failed to identify. EOC, or false positives (FP), on the other hand, refer to instances where a pattern is identified even though none actually exists.
 
+While precision ($\frac{TP}{TP+FP}$) measures the proportion of predicted stops that are correct, recall ($\frac{TP}{TP+FN}$) indicates whether all ground truth stops were identified [@powers2011evaluation]. The closer these parameter values are to 1, the more accurate the method. The F1-score ($2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$), combines both parameters to provide a single value between 0 and 1.The closer the F1-score value is to 1, the more accurate the method is [@powers2011evaluation]. 
+
+#### Use of AI
+
+This project was carried out with the help of artificial intelligence (AI) tools. Google Gemini was used as an analytical and exploratory tool to assist with searching for scientific literature, generating parts of the data analysis code and interpreting the results. Additionally, DeepL Write was also utilised as a phrasing and stylistic aid to improve the linguistic clarity and quality of the written text. All AI-generated outputs, code blocks and insights were critically evaluated, verified and manually refined to ensure academic integrity and factual accuracy and to guarantee that the work remains an independent achievement. The specific tools used and their precise applications are detailed in the "Directory of AI Tools Used" at the end of this document.
 
 ## Results
 
-@fig-10-window, @fig-20-window, @fig-30-window and @fig-40-window show the results of the static event identification for the four different temporal windows 10, 20, 30 and 40 seconds. Because the Posmo data was not captured in a continuous interval for some fixes in the temporal windows 10 and 20 seconds no neighbouring fixes were detected. These points are plotted as "Unknown" and could not be used for further analysis. 
+@fig-10-window, @fig-20-window, @fig-30-window and @fig-40-window show the results of the static event identification for the four temporal windows of 10, 20, 30 and 40 seconds. Because the PosmoProject data was not captured in a continuous interval, no neighbouring fixes were detected for some fixes in the 10 and 20 seconds temporal windows. These points are plotted as "Unknown" and cannot be used for further analysis. 
 
 ```{r 10s Window}
 #| fig-width: 10
@@ -328,7 +494,7 @@ p4 <- ggplot(Swisstopo_2_processed_10) +
 p5 <- ggplot(Posmo_1_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
-  labs(title = "Posmo 1") +
+  labs(title = "PosmoProject 1") +
   scale_x_continuous(breaks = wollerau_x) + 
   scale_y_continuous(breaks = wollerau_y) +
   coord_sf(datum = 2056) + 
@@ -337,7 +503,7 @@ p5 <- ggplot(Posmo_1_processed_10) +
 p6 <- ggplot(Posmo_2_processed_10) +
   geom_sf(aes(color = is_static), size = 1) +
   show_full_legend +
-  labs(title = "Posmo 2") +
+  labs(title = "PosmoProject 2") +
   scale_x_continuous(breaks = wollerau_x) + 
   scale_y_continuous(breaks = wollerau_y) +
   coord_sf(datum = 2056) + 
@@ -362,12 +528,19 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 
 # Plot the static events
 
-theme_x_cord <- list(
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
   theme_minimal(),
-  coord_sf(datum = 2056),
   theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-    plot.title = element_text(size = 10, face = "bold")
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
 )
 
@@ -391,37 +564,55 @@ p1 <- ggplot(Strava_1_processed_20 ) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Strava 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p2 <- ggplot(Strava_2_processed_20) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Strava 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p3 <- ggplot(Swisstopo_1_processed_20) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Swisstopo 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p4 <- ggplot(Swisstopo_2_processed_20) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Swisstopo 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p5 <- ggplot(Posmo_1_processed_20) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
-  labs(title = "Posmo 1") +
-  theme_x_cord
+  labs(title = "PosmoProject 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p6 <- ggplot(Posmo_2_processed_20) +
   geom_sf(aes(color = is_static), size = 1) +
   show_full_legend +
-  labs(title = "Posmo 2") +
-  theme_x_cord
+  labs(title = "PosmoProject 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 # creates a grid layout with 3 columns, and collects the legends into one clean spot
 p1 + p2 + p3 + p4 + p5 + p6 + 
@@ -442,12 +633,19 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 
 # Plot the static events
 
-theme_x_cord <- list(
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
   theme_minimal(),
-  coord_sf(datum = 2056),
   theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-    plot.title = element_text(size = 10, face = "bold")
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
 )
 
@@ -469,37 +667,55 @@ p1 <- ggplot(Strava_1_processed_30 ) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Strava 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p2 <- ggplot(Strava_2_processed_30) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Strava 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p3 <- ggplot(Swisstopo_1_processed_30) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Swisstopo 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p4 <- ggplot(Swisstopo_2_processed_30) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Swisstopo 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p5 <- ggplot(Posmo_1_processed_30) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
-  labs(title = "Posmo 1") +
-  theme_x_cord
+  labs(title = "PosmoProject 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p6 <- ggplot(Posmo_2_processed_30) +
   geom_sf(aes(color = is_static), size = 1) +
   show_full_legend +
-  labs(title = "Posmo 2") +
-  theme_x_cord
+  labs(title = "PosmoProject 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 # creates a grid layout with 3 columns, and collects the legends into one clean spot
 p1 + p2 + p3 + p4 + p5 + p6 + 
@@ -520,12 +736,19 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 
 # Plot the static events
 
-theme_x_cord <- list(
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+wollerau_y <- seq(1226700, 1227200, by = 200)
+wollerau_x <- seq(2694900, 2695700, by = 200)
+
+base_theme <- list(
   theme_minimal(),
-  coord_sf(datum = 2056),
   theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-    plot.title = element_text(size = 10, face = "bold")
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
 )
 
@@ -547,37 +770,55 @@ p1 <- ggplot(Strava_1_processed_40 ) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Strava 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p2 <- ggplot(Strava_2_processed_40) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Strava 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = olten_x) + 
+  scale_y_continuous(breaks = olten_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p3 <- ggplot(Swisstopo_1_processed_40) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Swisstopo 1") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p4 <- ggplot(Swisstopo_2_processed_40) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
   labs(title = "Swisstopo 2") +
-  theme_x_cord
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p5 <- ggplot(Posmo_1_processed_40) +
   geom_sf(aes(color = is_static), size = 1) +
   hide_legend +
-  labs(title = "Posmo 1") +
-  theme_x_cord
+  labs(title = "PosmoProject 1") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 p6 <- ggplot(Posmo_2_processed_40) +
   geom_sf(aes(color = is_static), size = 1) +
   show_full_legend +
-  labs(title = "Posmo 2") +
-  theme_x_cord
+  labs(title = "PosmoProject 2") +
+  scale_x_continuous(breaks = wollerau_x) + 
+  scale_y_continuous(breaks = wollerau_y) +
+  coord_sf(datum = 2056) + 
+  base_theme
 
 # creates a grid layout with 3 columns, and collects the legends into one clean spot
 p1 + p2 + p3 + p4 + p5 + p6 + 
@@ -590,7 +831,7 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 
 ```
 
-@fig-10s-strava2 and @fig-30s-posmo1 show two examples for varying time windows and mobile apps of the visualised stop detection inside different buffer sizes computed with different cluster distances for the static events. 
+@fig-10s-strava2 and @fig-30s-posmo1 illustrate two examples of visualised stop detection, for varying time windows, mobile apps, buffer sizes and cluster distances, for static events. 
 
 ```{r Example: Strava 2 10s Window}
 #| fig-width: 8
@@ -601,13 +842,16 @@ p1 + p2 + p3 + p4 + p5 + p6 +
 
 # plot the combinations of clustering and buffering around waypoint
 
-theme_x_cord <- list(
-  coord_sf(datum = 2056),
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+base_theme <- list(
   theme_minimal(),
   theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-    plot.title = element_text(size = 9, face = "bold"),
-    axis.title = element_blank()
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
 )
 
@@ -637,7 +881,10 @@ for (md in max_dist_liste) {
       ) +
       labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), 
            color = "Inside of the buffer") +
-      theme_x_cord
+      scale_x_continuous(breaks = olten_x) +
+      scale_y_continuous(breaks = olten_y) +
+      coord_sf(datum = 2056) +
+      base_theme
     
     plot_liste[[paste0("md", md, "_b", buf)]] <- p
   }
@@ -652,20 +899,24 @@ wrap_plots(plot_liste, ncol = 3) +
 ```
 
 ```{r Example: Posmo 1 30s Window}
-#| fig-width: 10
-#| fig-cap: "Visualisation of the static events (with a time window of 30 seconds) inside the buffer for different cluster distances and buffer sizes for Posmo 1"
+#| fig-width: 8
+#| fig-height: 8
+#| fig-cap: "Visualisation of the static events (with a time window of 30 seconds) inside the buffer for different cluster distances and buffer sizes for PosmoProject 1"
 #| label: fig-30s-posmo1
 
 
 # plot the combinations of clustering and buffering around waypoint
 
-theme_x_cord <- list(
-  coord_sf(datum = 2056),
+olten_y <- seq(1244200, 1245100, by = 200)
+olten_x <- seq(2633200, 2634000, by = 200)
+
+base_theme <- list(
   theme_minimal(),
   theme(
-    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5),
-    plot.title = element_text(size = 9, face = "bold"),
-    axis.title = element_blank()
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 0.5, size = 8),
+    axis.text.y = element_text(size = 8),
+    plot.title = element_text(size = 11, face = "bold", hjust = 0.5),
+    panel.grid.minor = element_blank() # Removes messy minor gridlines
   )
 )
 
@@ -695,7 +946,10 @@ for (md in max_dist_liste) {
       ) +
       labs(title = paste0("MD: ", md, "m | Buffer: ", buf, "m"), 
            color = "Inside of the buffer") +
-      theme_x_cord
+      scale_x_continuous(breaks = wollerau_x) +
+      scale_y_continuous(breaks = wollerau_y) +
+      coord_sf(datum = 2056) +
+      base_theme
     
     plot_liste[[paste0("md", md, "_b", buf)]] <- p
   }
@@ -704,12 +958,15 @@ for (md in max_dist_liste) {
 wrap_plots(plot_liste, ncol = 3) + 
   plot_layout(guides = "collect") + 
   plot_annotation(
-    title = "Posmo 1 - 9 combinations of clustering and buffering around waypoints",
+    title = "PosmoProject 1 - 9 combinations of clustering and buffering around waypoints",
     subtitle = "Temporal window for static events = 30 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"
   )
 ```
 
-To compare the effectiveness of using different time windows to classify static events, various clustering distances to create single stops and different buffers around the waypoints @tbl-parameters-all-prov compares the performance of the different parameters for all three mobile apps together. The table shows for each parameter combination the total stops created (Total Stops Found),  stops correctly identified inside the buffer (TP), the stops identified outside of the buffer (FP) and the number of buffers for which no stops were detected (FN). Furthermore, the performance metrics precision ($\frac{TP}{TP+FP}$) and recall ($\frac{TP}{TP+FN}$) are calculated in the table and recall is used to highlight the 5 best (green) and 5 worst (red) performances. Overall 5 metre waypoint buffers detected the fewest stops inside the buffers and performed the worst. Waypoint buffers of 15 metres in connection with big temporal windows performed the best in detecting true stops as well as only having few false stops. 
+To compare the effectiveness of using different time windows to classify static events and various clustering distances to create single stops, as well as different buffers around the waypoints, @tbl-parameters-all-prov compares the performance of the different parameters for all three mobile apps together. For each parameter combination, the table shows the total number of stops created (Total Stops Found), the number of stops correctly identified inside the buffer (True Positive), the number of stops identified outside of the buffer (False Positive) and the number of buffers for which no stops were detected (False Negative). 
+Furthermore, the table shows the performance metrics precision and recall, with recall used to highlight the five best (green) and five worst (red) performances. 
+
+Overall, 5 metre waypoint buffers detected the fewest stops inside the buffers and performed the worst. Waypoint buffers of 15 metres in connection with large temporal windows performed best in terms of detecting true stops and having few false stops. 
 
 ```{r Parameter Table with Highlighting}
 #| tbl-cap: "Parameter Table evaluating out of maximum 88 possible ground truth waypoint targets across all combined tracking apps. The top 5 performing rows for recall values are highlighted in green and the bottom 5 in red."
@@ -768,29 +1025,29 @@ master_raw_metrics <- bind_rows(
   get_all_permutations(Strava_2_10_stops_list, "Strava", "T2", 10, gt_strava_t2),
   get_all_permutations(Swisstopo_1_10_stops_list, "Swisstopo", "T1", 10, gt_swiss_t1),
   get_all_permutations(Swisstopo_2_10_stops_list, "Swisstopo", "T2", 10, gt_swiss_t2),
-  get_all_permutations(Posmo_1_10_stops_list, "Posmo", "T1", 10, gt_posmo_t1),
-  get_all_permutations(Posmo_2_10_stops_list, "Posmo", "T2", 10, gt_posmo_t2),
+  get_all_permutations(Posmo_1_10_stops_list, "PosmoProject", "T1", 10, gt_posmo_t1),
+  get_all_permutations(Posmo_2_10_stops_list, "PosmoProject", "T2", 10, gt_posmo_t2),
   
   get_all_permutations(Strava_1_20_stops_list, "Strava", "T1", 20, gt_strava_t1),
   get_all_permutations(Strava_2_20_stops_list, "Strava", "T2", 20, gt_strava_t2),
   get_all_permutations(Swisstopo_1_20_stops_list, "Swisstopo", "T1", 20, gt_swiss_t1),
   get_all_permutations(Swisstopo_2_20_stops_list, "Swisstopo", "T2", 20, gt_swiss_t2),
-  get_all_permutations(Posmo_1_20_stops_list, "Posmo", "T1", 20, gt_posmo_t1),
-  get_all_permutations(Posmo_2_20_stops_list, "Posmo", "T2", 20, gt_posmo_t2),
+  get_all_permutations(Posmo_1_20_stops_list, "PosmoProject", "T1", 20, gt_posmo_t1),
+  get_all_permutations(Posmo_2_20_stops_list, "PosmoProject", "T2", 20, gt_posmo_t2),
   
   get_all_permutations(Strava_1_30_stops_list, "Strava", "T1", 30, gt_strava_t1),
   get_all_permutations(Strava_2_30_stops_list, "Strava", "T2", 30, gt_strava_t2),
   get_all_permutations(Swisstopo_1_30_stops_list, "Swisstopo", "T1", 30, gt_swiss_t1),
   get_all_permutations(Swisstopo_2_30_stops_list, "Swisstopo", "T2", 30, gt_swiss_t2),
-  get_all_permutations(Posmo_1_30_stops_list, "Posmo", "T1", 30, gt_posmo_t1),
-  get_all_permutations(Posmo_2_30_stops_list, "Posmo", "T2", 30, gt_posmo_t2),
+  get_all_permutations(Posmo_1_30_stops_list, "PosmoProject", "T1", 30, gt_posmo_t1),
+  get_all_permutations(Posmo_2_30_stops_list, "PosmoProject", "T2", 30, gt_posmo_t2),
   
   get_all_permutations(Strava_1_40_stops_list, "Strava", "T1", 40, gt_strava_t1),
   get_all_permutations(Strava_2_40_stops_list, "Strava", "T2", 40, gt_strava_t2),
   get_all_permutations(Swisstopo_1_40_stops_list, "Swisstopo", "T1", 40, gt_swiss_t1),
   get_all_permutations(Swisstopo_2_40_stops_list, "Swisstopo", "T2", 40, gt_swiss_t2),
-  get_all_permutations(Posmo_1_40_stops_list, "Posmo", "T1", 40, gt_posmo_t1),
-  get_all_permutations(Posmo_2_40_stops_list, "Posmo", "T2", 40, gt_posmo_t2)
+  get_all_permutations(Posmo_1_40_stops_list, "PosmoProject", "T1", 40, gt_posmo_t1),
+  get_all_permutations(Posmo_2_40_stops_list, "PosmoProject", "T2", 40, gt_posmo_t2)
 )
 
 # corrected mathematical aggregation
@@ -831,7 +1088,7 @@ global_parameter_table |>
   row_spec(bottom_5_rows, background = "#f8d7da", extra_css = "color: #721c24;")
 ```
 
-Form the precision and recall values we can calculate The F1-score $F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}$ which is a further indication of performance. @fig-F1-together shows this F1-score for all the apps together and @fig-F1-by-App shows the F1-scores more precisely for each app. @fig-F1-together underlines the results of @tbl-parameters-all-prov that for all apps combined the 5 metre waypoint buffer performs the worst in and especially in connection with a 10 seconds time window to detect static events. The figure further highlights that the 15 metres waypoint buffer in connection with a big temporal window for static events and rather higher maximal clustering distances perform the best.
+From the precision and recall values, we can calculate the F1 score, which provides a further indication of performance. @fig-F1-together shows the F1 score for all the apps combined, while @fig-F1-by-App shows the F1 scores more precisely, for each app individually. @fig-F1-together underlines the results of @tbl-parameters-all-prov that, for all apps combined, the 5 metre waypoint buffer performs worst, especially in connection with a 10 seconds time window to detect static events. The @fig-F1-together and @fig-F1-by-App further shows that the 15 metres waypoint buffer, when used in connection with a large temporal window for static events and rather high maximal clustering distances, performs the best.
 
 ```{r F1 score for all}
 #| fig-width: 8
@@ -863,7 +1120,7 @@ ggplot(global_parameter_table, aes(x = Max_Dist, y = WP_Buffer, fill = F1)) +
 
 ```
 
-@fig-F1-by-App indicates that the Strava app performs overall the best where as Posmo on the other hand performs very bad especially for the 10 seconds time window. This is also further highlighted in @tbl-app-performance. 
+@fig-F1-by-App shows that the Strava app performs the best overall, whereas the PosmoProject app performs very badly, especially with a 10 seconds time window. This is also further highlighted in @tbl-app-performance. 
 
 ```{r F1 score by App}
 #| fig-width: 8
@@ -916,7 +1173,7 @@ result_all |>
   knitr::kable(
     format = "html",
     col.names = c("Application", "Time Window", "Mean Precision", "Mean Recall", "Mean F1-score"),
-    align = c("l", "c", "r", "r") # Left, Center, Right, Right alignment
+    align = c("l", "c", "c", "c", "c")
   ) |>
   kableExtra::kable_styling(
     bootstrap_options = c("striped", "hover", "condensed", "responsive"),
@@ -925,10 +1182,10 @@ result_all |>
 
 ```
 
-However the best F1-scores for Posmo and Swisstopo were not achieved for the 30 seconds time window but rather the 30 seconds time window with a 10 metre clustering distance (@tbl-app-best-performance). 
+However, the best F1 scores for the PosmoProject and Swisstopo apps were not only achieved with the 40 seconds time window but also the 30 seconds time window and a 10 metre clustering distance (@tbl-app-best-performance). 
 
 ```{r Top performance for each app}
-#| tbl-cap: "Summary of F1-Scores per tracking app, showing the best performance alongside its optimal parameters, dataset averages and the amount of perfect performances per app. Strava shows multiple top performanece and the Best F1-score therefore only shows one example of a possible parameter combination for a perfect F1-score."
+#| tbl-cap: "Summary of F1-Scores per tracking app, showing the best performance alongside its optimal parameters, dataset averages and the amount of perfect performances per app. The Best F1-score only show one example of a possible parameter combination for a perfect F1-score for each app but there may also be different parameter combinations."
 #| label: tbl-app-best-performance
 
 app_summary <- master_apps |>
@@ -941,7 +1198,7 @@ app_summary <- master_apps |>
     max_val  = round(F1[best_idx], 3),
     
     # Extract the matching parameter values
-    win    = Window[best_idx],
+    win      = Window[best_idx],
     b_dist   = Max_Dist[best_idx],
     b_buf    = WP_Buffer[best_idx],
     
@@ -960,7 +1217,7 @@ app_summary |>
   knitr::kable(
     format = "html",
     col.names = c("Application", "Best F1-Score (Time Window	Clustering, Maximal Clustering Distance, Waypoint Buffer)", "Mean F1-Score", "Perfect Setups (F1 = 1)"),
-    align = c("l", "l", "r", "c", "c") # Changed second column to left-align for text readability
+    align = c("l", "c", "c", "c")
   ) |>
   kableExtra::kable_styling(
     bootstrap_options = c("striped", "hover", "condensed"),
@@ -968,12 +1225,12 @@ app_summary |>
   )
 ```
 
-Grouping the results for the different parameters separately it is further highlighted that the 30 and 40 seconds windows create the best F-1 scores (@tbl-best-perf-tw). The different clustering distances on the other hand seem to not have a big influence on the F1-score where as the buffer size of 5 metres results in significantly lower overall F1-scores as already mentioned abpve (@tbl-best-perf-CD and @tbl-best-perf-buff). 
+Grouping the results for the different parameters separately, it is further highlighted that the 30 and 40 seconds windows create the best F-1 scores (@tbl-best-perf-tw). The different clustering distances, on the other hand, seem to not have a big influence on the F1 score, whereas the buffer size of 5 metres results in significantly lower overall F1 scores, as already mentioned above (@tbl-best-perf-CD and @tbl-best-perf-buff). 
 
 ::: {#tbl-panel layout-ncol=3}
 
-```{r}
-#| tbl-cap: "Average perfromance for each time window."
+```{r time window}
+#| tbl-cap: "Average perfromance for each time window for segmentation."
 #| label: tbl-best-perf-tw
 
 master_apps  |> 
@@ -982,10 +1239,10 @@ master_apps  |>
     mean_F1 = mean(F1, na.rm = TRUE),
     .groups = "drop"
   ) |> 
-  knitr::kable(format = "html", col.names = c("Window", "Mean F1"))
+  knitr::kable(format = "html", col.names = c("Time Window", "Mean F1"))
 ```
 
-```{r}
+```{r clustering}
 #| tbl-cap: "Avereage perfrormance for each clustering distance."
 #| label: tbl-best-perf-CD
 
@@ -998,7 +1255,7 @@ master_apps |>
   knitr::kable(format = "html", col.names = c("Max Dist (m)", "Mean F1"))
 ```
 
-```{r}
+```{r buffer}
 #| tbl-cap: "Avereage perfrormance for each waypoint buffer size."
 #| label: tbl-best-perf-buff
 
@@ -1012,30 +1269,44 @@ master_apps |>
 
 ```
 
-Top performance for all the different parameters separately.
+Average performance for all the different parameters separately.
 :::
-
 
 ## Discussion
 
-The results of the analysis are based on F1 scores. This metric was chosen because it incorporates all three of our analysis parameters: TP, FP, and FN. The F1 score is calculated using precision and recall metrics. The precision value compares the TP with the FP—that is, the ratio of correctly to incorrectly identified stops—while recall calculates a value that indicates whether all ground truth stops were identified. The closer these parameter values are to 1, the more accurate the method. The F1 score combines both parameters and yields a value between 0 and 1. Thus, the closer the F1 score value is to 1, the more accurate the method. At first glance, the segmentation method appears to show high F1 scores, though with a few exceptions.
+The results of the analysis are based on F1 scores. This metric was chosen because it incorporates all three of our analysis parameters TP, FP, and FN. The F1 score is calculated using the precision and recall metrics. The closer the parameter values are to 1, the more accurate is the method. The F1 score combines these two parameters to produce a value between 0 and 1. Thus, the closer the F1 score value is to 1, the more accurate the method. At first glance, the stop detection method used appears to produce high F1 scores, though there are a few exceptions.
 
-In @fig-F1-together, the low F1 score indicates that the 5-meter buffer is a poor choice. The reason for this is that the stops usually covered a large area, and the exercises required a somewhat larger radius. Likewise, GPS inaccuracies are more sensitive in a small buffer and can deviate much more quickly. This negative behavior of the 5m buffer is also evident in @tbl-best-perf-buff. It is also visible that the 10-second intervals yield significantly lower values. However, the reason for this is better shown in @fig-F1-by-App. The Posmo app delivers very low values at short time intervals. Even at 20-second intervals, the values are still not outstanding. This is a weakness of the chosen methodology, since Posmo provides a GPS signal on average every 15 seconds and there are not enough neighbors within the 10-second interval. This results in a very large number of NA stepMean values. Even in the 20-second intervals, there are still some NA stepMean values, since on average only 1 to 2 neighbors are detected within that time window. Even with 40-second intervals, there are only an average of 3 neighbors. Strava, on the other hand, sends a signal every 2 seconds, which means that in a 10-second interval, the stepMean is already calculated from 5 neighbors; with Swisstopo, this happens every second, allowing stepMean to be calculated from 10 neighbors.
+In @fig-F1-together, the low F1 score indicates that the 5 meter buffer is not an ideal choice for detecting stops within a certain area. This is because the stops usually cover a "large" area and the exercises require a somewhat larger radius, which may not be captured by such a small buffer. Similarly, GPS inaccuracies for stop detection may have a greater impact, because the potential overlap is smaller for smaller waypoint buffers. This negative behaviour of the 5 metre buffer is also evident in @tbl-best-perf-buff. 
+The results further show that the performance (F1 scores) is significantly lower for 10 second intervals. However, this is most likely due to the poor performance of the PosmoProject app at this interval (@fig-F1-by-App). The PosmoProject app produces very low performance metric values at short time intervals. Even at 20-second intervals, the values are still not outstanding. This is a weakness of the chosen methodology, since on average, PosmoProject provides a GPS fix every 15 seconds and there are not enough neighbours within the 10 second interval to identify static points. This results in a large number of NA mean spatial distance values. Even at 20 second intervals, some NA mean spatial distance values remain, since, on average, only one to two neighbours are detected within that time window. Even with 40-second intervals, there is an average of only 3 neighbours. Strava and Swisstopo, on the other hand, send a signal every second, which means that in a 10 second interval, the mean spatial distance is already calculated from ten neighbours.
 
-One possible solution to this problem is to use interpolation over a specific time interval, rather than calculating a stepMean based on existing values within a time interval. Interpolation makes it possible to create comparable time intervals across all apps, with coordinates being linearly interpolated and adjusted. The disadvantage is that, with long signal intervals such as in Posmo, interpolation can lead to inaccurate coordinate shifts. Interpolation was also the method originally chosen, but after several failed attempts, it was identified as a limitation of this study. Consequently, due to the alternative methodology, the results from apps like Posmo—which transmit signals at 15-second intervals—should be interpreted with caution or are in some cases meaningless, especially when a time interval contains an average of 0 to 1 data points.
+One possible solution to this problem would be to use interpolation over a specific time interval, rather than calculating a mean spatial distance based on the values within that time interval. Interpolation makes it possible to create comparable time intervals across all apps, with coordinates being linearly interpolated and adjusted. However, with long signal intervals, such as in the PosmoProject, interpolation can lead to inaccurate coordinate shifts. Interpolation was also originally selected as the method to use, but after several failed attempts, it was identified as a limitation of this study. Consequently, the results from apps like PosmoProject, which record fixes at roughly 15 second intervals, should be interpreted with caution or are meaningless in some cases, especially when a time interval contains an average of 0 to 1 data points.
 
-@tbl-parameters-all-prov shows that both precision and recall improve with a longer time interval. @tbl-app-performance also reveals the app’s impact, showing that Posmo is significantly negatively affected by recall. This means that in 10-second intervals, the identification of all 15 existing waypoint buffers in Wollerau is very inaccurate, as it is complicated by the NA values. In this study, not only does recall have a negative impact on the F1 score, but precision does as well. In @tbl-app-performance, Swisstopo yields lower F1 scores at shorter time intervals. Recall remains equally good across time intervals, but precision varies. The smaller the time interval, the lower the F1 score, as fewer neighbors are available for determining correct stops, and the risk of identifying incorrect stops increases. This is not only the case for Swisstopo; according to @tbl-best-perf-tw, this behavior holds true regardless of the app.
+@tbl-parameters-all-prov shows that both precision and recall improve with a longer time interval. @tbl-app-performance also reveals the impact of the app, showing that PosmoProject has a significantly negative effect on recall values. This means that at 10 second intervals, the identification of all 15 existing waypoint buffers in Wollerau is very inaccurate due to the NA values. In this study, not only do bad recall values have a negative impact on the F1 score, but also low precision values. In @tbl-app-performance, Swisstopo yields lower F1 scores at shorter time intervals. Recall remains equally good across time intervals, but precision varies. The smaller the time interval, the lower the F1 score, as fewer neighbours are available to determine correct stops and the risk of identifying incorrect stops increases. This is not only the case for Swisstopo, but is rather consistent, regardless of the app (@tbl-best-perf-tw).
 
-It is particularly interesting that the waypoints were created using Swisstopo—which has the best sampling interval—yet Strava still delivers better F1 scores than Swisstopo in @tbl-app-best-performance. Strava even manages to achieve a perfect F1 score of 1 in 20 different combinations. In contrast, Posmo and Swisstopo never reach 1, with Swisstopo’s best value being 0.966. Since Strava was the only app used in Olten, it is possible that the running behavior in Olten was more suitable for the segmentation method—for example, longer breaks were taken during stops, or no interruptions occurred during the run, or just the App which was indeed the case. The only parameter that makes hardly any difference to the results in @tbl-best-perf-CD is the cluster selection. This is because FP data points are either very close to each other or far apart anyway. For this to make a difference, the cluster selection would have to be taken to the extreme.
-
+Furthermore, it is particularly interesting that the waypoints were created using Swisstopo, which also has the same sampling interval as Strava, yet Strava delivers better F1-scores than Swisstopo (@tbl-app-best-performance). Strava even manages to achieve a perfect F1 score of 1 in 20 different combinations. In contrast, neither PosmoProject nor Swisstopo ever reach 1, however, the best value for Swisstopo is 0.966, which is very close. Since Strava was the only app used in Olten, it is possible that the running behaviour in Olten was more suitable for the segmentation method. For example, longer breaks were taken during stops or no interruptions occurred during the run or perhaps the app just performs better. Since both Vitaparcours are mostly in forested areas, this should not have a significant influence on comparisons between the two tracks.
+The only parameter that makes hardly any difference to the results in @tbl-best-perf-CD is the cluster selection. This is because static data points are either very close to each other or far apart. For the cluster size to make a difference, the selection would have to be taken to an even more extreme.
 
 ## Conclusion
 
-The results of this analysis were generated using F1 scores. Several distinct patterns are evident. The buffer radius around the waypoints should not be too small, as otherwise GPS inaccuracies will have a significant impact or the exercise will require more space. Therefore, 5 meters is not suitable as a buffer. Clusters, on the other hand, are resilient to changes in size as long as they are not taken to extremes, since error points are either very close together or very far apart. The chosen method of calculating stepMean values from neighbors at different time intervals ensures that longer time intervals, such as 30 or 40 seconds, yield more accurate results, since more neighbors are included in the calculation. Furthermore, this has negative consequences for Posmo, since a signal is sent only every 15 seconds, and in short intervals such as 10 seconds, there are not enough neighbors to perform a calculation within that interval. Interpolation could solve this methodological problem. In contrast, Strava shows the best F1-scores, followed by Swisstopo, as both apps send signals every 1 to 2 seconds.
+The analysis of the results was generated using precision, recall and F1 scores. Several distinct patterns are evident. The buffer radius around the waypoints should not be too small, as otherwise, GPS inaccuracies will have a significant impact. Therefore, a buffer radius of 5 metres is not suitable to compare stops generated from static events with ground truth points. Clusters, on the other hand, are resilient to changes in size, as long as rather small values below 15 metres are chosen, since error points are either very close together or very far apart. The chosen method of calculating mean spatial distance values from neighbours at different time intervals ensures that longer time intervals, such as 30 or 40 seconds, yield more accurate results, since more neighbours are included in the calculation and a comparison between different sampling intervals can be guaranteed. However, this has negative consequences for the PosmoProject data, since at short intervals, such as 10 seconds, there are not enough neighbours to perform a calculation within that interval. 
+Overall, stop detection could be performed with all three different apps and Strava shows the best performance in connection with F1 scores, followed by Swisstopo.
+
 
 ## Appendix
 
-### AI use
+### Directory of AI Tools Used
+
+DeepL (2026). DeepL Write. 
+https://www.deepl.com/en/write
+
+- Formulation aid and stylistic optimization of text passages
+
+Google. (2026). Gemini (Version 3.5 Flash). 
+https://gemini.google.com
+
+- Assistance with literature and source searching
+- Generation and debugging of code
+- Support in the interpretation, structuring, and contextualization of analytical results
 
 ### Wordcount
 
