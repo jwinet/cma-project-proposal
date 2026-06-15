@@ -140,7 +140,7 @@ window.Quarto = {
   <li><a href="#abstract" id="toc-abstract" class="nav-link active" data-scroll-target="#abstract">Abstract</a></li>
   <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction">Introduction</a>
   <ul>
-  <li><a href="#reserch-questions" id="toc-reserch-questions" class="nav-link" data-scroll-target="#reserch-questions">Reserch Questions</a></li>
+  <li><a href="#research-questions" id="toc-research-questions" class="nav-link" data-scroll-target="#research-questions">Research Questions</a></li>
   </ul></li>
   <li><a href="#material-and-methods" id="toc-material-and-methods" class="nav-link" data-scroll-target="#material-and-methods">Material and Methods</a>
   <ul>
@@ -170,7 +170,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Stop Detection in Vitaparcours Movement Data</h1>
-<p class="subtitle lead">Using segmentation algorithems, clustering algorithems and buffering around the gorund truth points to classify stops</p>
+<p class="subtitle lead">Using segmentation algorithms, clustering algorithms and buffering around the ground truth points to classify stops</p>
 </div>
 
 
@@ -391,15 +391,15 @@ Listing&nbsp;1: Methods
 </div>
 <section id="abstract" class="level2">
 <h2 class="anchored" data-anchor-id="abstract">Abstract</h2>
-<p>Computational Movement Analysis (CMA) provides a framework for extracting meaningful behaviours from raw tracking data, with segmentation acting as a method to isolate distinct states. This study evaluates the effectiveness of adapting the segmentation algorithm proposed by <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span> to identify and categorise exercise stops along Vitaparcours trails. To address variations across inconsistent spatial and temporal recording scales, trajectories were recorded across three mobile apps with different sampling frequencies. The resulting static fixes were then aggregated into stops using different spatial clustering thresholds and evaluated against ground truth waypoints using multiple spatial buffer sizes. The performance metrics (Precision, Recall, and F1 score) were used to evaluate the results and show that small spatial buffers combined with short temporal windows significantly reduce accuracy. By contrast, 15 metre waypoint buffers in combination with larger temporal windows and higher spatial clustering distances result in very good stop detection accuracy across all apps.</p>
+<p>Computational Movement Analysis (CMA) provides a framework for extracting meaningful behaviours from raw tracking data, with segmentation acting as a method to isolate distinct states. This study evaluates the effectiveness of adapting the segmentation algorithm proposed by <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span> to identify and categorise exercise stops along Vitaparcours trails. To address variations across inconsistent spatial and temporal recording scales, trajectories were recorded across three mobile apps with different sampling frequencies. The resulting static fixes were then aggregated into stops using different spatial clustering thresholds and evaluated against ground truth waypoints using multiple spatial buffer sizes. The performance metrics (Precision, Recall, and F1-score) were used to evaluate the results, which show that small spatial buffers combined with short temporal windows significantly reduce accuracy. By contrast, 15-metre waypoint buffers in combination with larger temporal windows and higher spatial clustering distances result in very good stop detection accuracy across all apps.</p>
 </section>
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>The field of Computational Movement Analysis (CMA) has emerged in response to the growing volumes of tracking data. It helps to develop the tools which are necessary to extract meaningful patterns and behaviours from raw location data <span class="citation" data-cites="laube2014computational">(<a href="#ref-laube2014computational" role="doc-biblioref">Laube 2014</a>)</span>. A significant part of this process is segmentation, which divides movement paths into segments, such as “stops” and “moves”, in order to make the data easier to analyse and interpret <span class="citation" data-cites="laube2014computational">(<a href="#ref-laube2014computational" role="doc-biblioref">Laube 2014</a>)</span>.</p>
+<p>The field of Computational Movement Analysis (CMA) has emerged in response to the growing volumes of tracking data. It helps to develop the tools that are necessary to extract meaningful patterns and behaviours from raw location data <span class="citation" data-cites="laube2014computational">(<a href="#ref-laube2014computational" role="doc-biblioref">Laube 2014</a>)</span>. A significant part of this process is segmentation, which divides movement paths into segments, such as “stops” and “moves”, in order to make the data easier to analyse and interpret <span class="citation" data-cites="laube2014computational">(<a href="#ref-laube2014computational" role="doc-biblioref">Laube 2014</a>)</span>.</p>
 <p>This project investigates the effectiveness of the segmentation algorithm used by <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span> for detecting exercise stops along Vitaparcours tracks. In their article, <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span> used movement data from animals and removed the static segments, whereas this project aims to use exactly these static events for stop detection.</p>
 <p>A further significant challenge in movement analysis is what researchers call “Granularity Grief”, where the results of the analysis are influenced by the temporal scale or sampling frequency of the tracking device <span class="citation" data-cites="laube2011">(<a href="#ref-laube2011" role="doc-biblioref">Laube and Purves 2011</a>)</span>. This project aims to address this issue by comparing trajectories recorded by three different mobile apps (PosmoProject, Strava and Swisstopo). By evaluating how the different sampling regimes impact stop detection, the study aims to quantify the robustness of stop detection across variable data qualities.</p>
-<section id="reserch-questions" class="level3">
-<h3 class="anchored" data-anchor-id="reserch-questions">Reserch Questions</h3>
+<section id="research-questions" class="level3">
+<h3 class="anchored" data-anchor-id="research-questions">Research Questions</h3>
 <ul>
 <li>Can Vitaparcours exercise stops be efficiently detected in movement data from different providers using the segmentation algorithm described in <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span>?</li>
 <li>How well do modelled exercise stops match the real location of these stops for movement trajectories from different providers?</li>
@@ -411,28 +411,28 @@ Listing&nbsp;1: Methods
 <h2 class="anchored" data-anchor-id="material-and-methods">Material and Methods</h2>
 <section id="data" class="level3">
 <h3 class="anchored" data-anchor-id="data">Data</h3>
-<p>The data for this project was collected using three different mobile apps (Strava, Swisstopo and PosmoProject) between the 20 and 24 May 2026. The Strava data was recorded on a Vitaparcours track in Olten, on two separate days. The data from Swisstopo and PosmoProject, on the other hand, was recorded on a track in Wollerau, at the same time and also on two different days. The Strava and Swisstopo apps recorded a fix every second, whereas the PosmoProject app did not record at a continuous interval. Ground truth points were also recorded with the Swisstopo app, because no Vitaparcours stops datasets could be found online. The track in Olten consists of 14 stops, while the track in Wollerau has 15.</p>
+<p>The data for this project were collected using three different mobile apps (Strava, Swisstopo and PosmoProject) between the 20 and 24 May 2026. The Strava data was recorded on a Vitaparcours track in Olten, on two separate days. The data from Swisstopo and PosmoProject, on the other hand, was recorded on a track in Wollerau, at the same time and also on two different days. The Strava and Swisstopo apps recorded a fix every second, whereas the PosmoProject app did not record at a continuous interval. Ground truth points were also recorded with the Swisstopo app, because no Vitaparcours stops datasets could be found online. The track in Olten consists of 14 stops, while the track in Wollerau consists of 15.</p>
 </section>
 <section id="preprocessing" class="level3">
 <h3 class="anchored" data-anchor-id="preprocessing">Preprocessing</h3>
-<p>Before any analysis can begin, the raw data needs to be pre-processed to make it comparable and easier to handle. For this project, the data from Strava, Swisstopo and PosmoProject were first imported, standardised and converted to the Europe/Zurich time zone. Furthermore, all coordinate geometries were transformed into the Swiss coordinate systems CH1903+/LV95, to ensure accurate calculations (<strong><em>need to add link to Preprocessing file</em></strong>).</p>
+<p>Before any analysis can begin, the raw data needs to be pre-processed to make it comparable and easier to handle. For this project, the data from Strava, Swisstopo and PosmoProject were first imported, standardised and converted to the Europe/Zurich time zone. Furthermore, all coordinate geometries were transformed into the Swiss coordinate systems CH1903+/LV95, to ensure accurate calculations (<a href="https://019ecb9a-b9c0-b2b8-25f2-7c67911f5cc2.share.connect.posit.cloud/" target="_blank">Preprocessing code</a>).</p>
 </section>
 <section id="methods" class="level3">
 <h3 class="anchored" data-anchor-id="methods">Methods</h3>
 <section id="isolating-static-events" class="level4">
 <h4 class="anchored" data-anchor-id="isolating-static-events">Isolating Static Events</h4>
-<p>To isolate static events from the different trajectories, geometries were classified using an adaptive mean temporal window distance for four windows of different sizes (10, 20, 30 and 40 seconds), as described by <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span>. For each point i, the algorithm calculated the neighbouring coordinates within the window (<span class="math inline">\([t_{i} - \frac{w}{2}, t_{i} + \frac{w}{2}]\)</span>) and computed their mean spatial distance (stepMean_i). The average of these spatial means was then used as a threshold to identify static points (is_static = TRUE), if stepMean_i was smaller than the threshold. The resulting 24 datasets were finally exported as GeoPackage files for further analysis (<a href="#fig-10-window" class="quarto-xref">Figure&nbsp;1</a>, <a href="#fig-20-window" class="quarto-xref">Figure&nbsp;2</a>, <a href="#fig-30-window" class="quarto-xref">Figure&nbsp;3</a> and <a href="#fig-40-window" class="quarto-xref">Figure&nbsp;4</a>). These processes were carried out in the preprocessing file, as they were computationally very heavy (<strong><em>need to add Link to Preprocessing file</em></strong>).</p>
+<p>To isolate static events from the different trajectories, geometries were classified using an adaptive mean temporal window distance for four different window sizes (10, 20, 30 and 40 seconds), as described by <span class="citation" data-cites="laube2011">Laube and Purves (<a href="#ref-laube2011" role="doc-biblioref">2011</a>)</span>. For each point i, the algorithm calculated the neighbouring coordinates within the window (<span class="math inline">\([t_{i} - \frac{w}{2}, t_{i} + \frac{w}{2}]\)</span>) and computed their mean spatial distance (stepMean_i). The average of these spatial means was then used as a threshold to identify static points (is_static = TRUE), if stepMean_i was smaller than the threshold. The resulting 24 datasets were finally exported as GeoPackage files for further analysis (<a href="#fig-10-window" class="quarto-xref">Figure&nbsp;1</a>, <a href="#fig-20-window" class="quarto-xref">2</a>, <a href="#fig-30-window" class="quarto-xref">3</a> and <a href="#fig-40-window" class="quarto-xref">4</a>). These processes were carried out in the <a href="https://019ecb9a-b9c0-b2b8-25f2-7c67911f5cc2.share.connect.posit.cloud/" target="_blank">preprocessing file</a>, as they were computationally very heavy .</p>
 </section>
 <section id="clustering-static-events-and-comparing-them-to-different-buffers" class="level4">
 <h4 class="anchored" data-anchor-id="clustering-static-events-and-comparing-them-to-different-buffers">Clustering Static Events and Comparing them to Different Buffers</h4>
 <p>To identify and analyse individual stationary events (stops) across different tracking datasets, a spatial analysis workflow was implemented at multiple scales (<a href="#lst-cluster-buffer" class="quarto-xref">Listing&nbsp;1</a>). This customised R function first filters static data points and applies a clustering mechanism based on distance, creating one stop from multiple static fixes. Points within a maximum distance threshold of 5, 10 or 15 metres are grouped together and their respective geometric centroids are calculated to produce one stop per cluster.</p>
-<p>Furthermore, a distance analysis evaluates these centroids against the ground truth waypoint locations. Multiple distance buffers (5, 10 and 15 metres) are then generated around the waypoints, in order to identify spatial intersections between the ground truth stop buffers and the generated stops. To avoid having multiple stops and thus multiple true positives, per buffer, the stops are further filtered. Multiple classified stops within the buffers are combined into a single stop inside a buffer, using the centroid. This ensures data consistency and simplifies data analysis and interpretation.</p>
+<p>Furthermore, a distance analysis evaluates these centroids against the ground truth waypoint locations. Multiple distance buffers (5, 10 and 15 metres) are generated around waypoints to identify spatial intersections. To avoid multiple true positives per buffer, classified stops within a buffer are filtered and combined into a single stop using their centroid. This ensures data consistency and simplifies data analysis and interpretation.</p>
 <p>This workflow dynamically tracks spatial attributes across different parameter combinations and generates structured, spatial data frames. To further assess temporal sensitivity, the entire analysis was repeated using the preprocessed datasets, segmented with four distinct temporal windows to capture static events. This ensures a robust evaluation of spatial clustering behaviour across varying spatial and temporal scales.</p>
 </section>
 <section id="performance-metrics-precision-recall-and-f1-score" class="level4">
 <h4 class="anchored" data-anchor-id="performance-metrics-precision-recall-and-f1-score">Performance Metrics (Precision, Recall and F1-score)</h4>
 <p>In the following, precision, recall and the F1-score are used to evaluate the classification performance of the stop detection. These concepts are closely connected to the concepts of Error of Omission (EOO) and Error of Commission (EOC), concepts used in movement pattern analysis <span class="citation" data-cites="laube2014computational">(<a href="#ref-laube2014computational" role="doc-biblioref">Laube 2014</a>)</span>. EOO, also known as false negative (FN), refers to “missed patterns”, in our case ground truth patterns that the algorithm failed to identify. EOC, or false positives (FP), on the other hand, refer to instances where a pattern is identified even though none actually exists.</p>
-<p>While precision (<span class="math inline">\(\frac{TP}{TP+FP}\)</span>) measures the proportion of predicted stops that are correct, recall (<span class="math inline">\(\frac{TP}{TP+FN}\)</span>) indicates whether all ground truth stops were identified <span class="citation" data-cites="powers2011evaluation">(<a href="#ref-powers2011evaluation" role="doc-biblioref">Powers 2011</a>)</span>. The closer these parameter values are to 1, the more accurate the method. The F1-score (<span class="math inline">\(2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}\)</span>), combines both parameters to provide a single value between 0 and 1.The closer the F1-score value is to 1, the more accurate the method is <span class="citation" data-cites="powers2011evaluation">(<a href="#ref-powers2011evaluation" role="doc-biblioref">Powers 2011</a>)</span>.</p>
+<p>Precision (<span class="math inline">\(\frac{TP}{TP+FP}\)</span>) measures the proportion of correct predicted stops, while recall (<span class="math inline">\(\frac{TP}{TP+FN}\)</span>) indicates if all ground truth stops were identified <span class="citation" data-cites="powers2011evaluation">(<a href="#ref-powers2011evaluation" role="doc-biblioref">Powers 2011</a>)</span>. The F1-score (<span class="math inline">\(2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}\)</span>) combines both parameters into a single value between 0 and 1 <span class="citation" data-cites="powers2011evaluation">(<a href="#ref-powers2011evaluation" role="doc-biblioref">Powers 2011</a>)</span>. For all three metrics, values closer to 1 indicate higher accuracy.</p>
 </section>
 <section id="use-of-ai" class="level4">
 <h4 class="anchored" data-anchor-id="use-of-ai">Use of AI</h4>
@@ -442,7 +442,7 @@ Listing&nbsp;1: Methods
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
-<p><a href="#fig-10-window" class="quarto-xref">Figure&nbsp;1</a>, <a href="#fig-20-window" class="quarto-xref">Figure&nbsp;2</a>, <a href="#fig-30-window" class="quarto-xref">Figure&nbsp;3</a> and <a href="#fig-40-window" class="quarto-xref">Figure&nbsp;4</a> show the results of the static event identification for the four temporal windows of 10, 20, 30 and 40 seconds. Because the PosmoProject data was not captured in a continuous interval, no neighbouring fixes were detected for some fixes in the 10 and 20 seconds temporal windows. These points are plotted as “Unknown” and cannot be used for further analysis.</p>
+<p><a href="#fig-10-window" class="quarto-xref">Figure&nbsp;1</a>, <a href="#fig-20-window" class="quarto-xref">2</a>, <a href="#fig-30-window" class="quarto-xref">3</a> and <a href="#fig-40-window" class="quarto-xref">4</a> show the results of the static event identification for the four temporal windows of 10, 20, 30 and 40 seconds. Because the PosmoProject data were not captured at continuous intervals, no neighbouring fixes were detected for some fixes in the 10- and 20-second temporal windows. These points are plotted as “Unknown” and cannot be used for further analysis.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -550,7 +550,7 @@ Listing&nbsp;1: Methods
 <img src="index_files/figure-html/fig-10-window-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10-window-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;1: Visualisation of the static events of all tracks with a time window of 10 seconds.
+Figure&nbsp;1: Visualisation of static events on all tracks within a 10-second time window.
 </figcaption>
 </figure>
 </div>
@@ -663,7 +663,7 @@ Figure&nbsp;1: Visualisation of the static events of all tracks with a time wind
 <img src="index_files/figure-html/fig-20-window-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-20-window-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;2: Visualisation of the static events of all tracks with a time window of 20 seconds.
+Figure&nbsp;2: Visualisation of static events on all tracks within a 20-second time window.
 </figcaption>
 </figure>
 </div>
@@ -774,7 +774,7 @@ Figure&nbsp;2: Visualisation of the static events of all tracks with a time wind
 <img src="index_files/figure-html/fig-30-window-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-30-window-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;3: Visualisation of the static events of all tracks with a time window of 30 seconds.
+Figure&nbsp;3: Visualisation of static events on all tracks within a 30-second time window.
 </figcaption>
 </figure>
 </div>
@@ -885,13 +885,13 @@ Figure&nbsp;3: Visualisation of the static events of all tracks with a time wind
 <img src="index_files/figure-html/fig-40-window-1.png" class="img-fluid figure-img" width="960">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-40-window-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;4: Visualisation of the static events of all tracks with a time window of 40 seconds.
+Figure&nbsp;4: Visualisation of static events on all tracks within a 40-second time window.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p><a href="#fig-10s-strava2" class="quarto-xref">Figure&nbsp;5</a> and <a href="#fig-30s-posmo1" class="quarto-xref">Figure&nbsp;6</a> illustrate two examples of visualised stop detection, for varying time windows, mobile apps, buffer sizes and cluster distances, for static events.</p>
+<p><a href="#fig-10s-strava2" class="quarto-xref">Figure&nbsp;5</a> and <a href="#fig-30s-posmo1" class="quarto-xref">6</a> illustrate two examples of visualised stop detection, for varying time windows, mobile apps, buffer sizes and cluster distances, for static events.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -921,36 +921,59 @@ Figure&nbsp;4: Visualisation of the static events of all tracks with a time wind
 <span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>    current_col <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"in_buf_md"</span>, md, <span class="st">"_b"</span>, buf)</span>
 <span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> <span class="fu">st_buffer</span>(wp_olten_clean, buf), </span>
-<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">"gray70"</span>, </span>
-<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.50</span>, </span>
-<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>              <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> filtered, </span>
-<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">as.character</span>(.data[[current_col]])), </span>
-<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>              <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_manual</span>(</span>
-<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"darkgreen"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"blue"</span>),</span>
-<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"Hit (TP)"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"False (FP)"</span>),</span>
-<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">drop =</span> <span class="cn">FALSE</span></span>
-<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
-<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"MD: "</span>, md, <span class="st">"m | Buffer: "</span>, buf, <span class="st">"m"</span>), </span>
-<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"Inside of the buffer"</span>) <span class="sc">+</span></span>
-<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> olten_x) <span class="sc">+</span></span>
-<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> olten_y) <span class="sc">+</span></span>
-<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_sf</span>(<span class="at">datum =</span> <span class="dv">2056</span>) <span class="sc">+</span></span>
-<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>      base_theme</span>
-<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>    plot_liste[[<span class="fu">paste0</span>(<span class="st">"md"</span>, md, <span class="st">"_b"</span>, buf)]] <span class="ot">&lt;-</span> p</span>
-<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot_liste, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span> </span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Strava 2 - 9 combinations of clustering and buffering around waypoints"</span>,</span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Temporal window for static events = 10 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"</span></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    show_leg <span class="ot">&lt;-</span> (md <span class="sc">==</span> max_dist_liste[<span class="dv">1</span>] <span class="sc">&amp;</span> buf <span class="sc">==</span> wp_buffer_liste[<span class="dv">1</span>]) <span class="co"># Only show the legend on the very first plot, hide it for the other 8</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> <span class="fu">st_buffer</span>(wp_olten_clean, buf), </span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">fill =</span> <span class="st">"Waypoint Buffer Area"</span>), </span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.50</span>, </span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>              <span class="at">color =</span> <span class="cn">NA</span>,</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>              <span class="at">key_glyph =</span> <span class="st">"point"</span>,</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a>              <span class="at">show.legend =</span> show_leg) <span class="sc">+</span></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> filtered, </span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">factor</span>(.data[[current_col]], <span class="at">levels =</span> <span class="fu">c</span>(<span class="st">"0"</span>, <span class="st">"1"</span>))), </span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>              <span class="at">size =</span> <span class="dv">1</span>,</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a>              <span class="at">show.legend =</span> show_leg) <span class="sc">+</span></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Waypoint Buffer Area"</span> <span class="ot">=</span> <span class="st">"gray70"</span>),</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>        <span class="at">name =</span> <span class="cn">NULL</span>,</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a>        <span class="at">guide =</span> <span class="fu">guide_legend</span>(</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a>          <span class="at">override.aes =</span> <span class="fu">list</span>(</span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a>            <span class="at">shape =</span> <span class="dv">21</span>,       <span class="co"># Filled circle shape</span></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>            <span class="at">size =</span> <span class="dv">4</span>,         <span class="co"># Makes the circle larger and clearer in the legend</span></span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> <span class="fl">0.50</span>,      <span class="co"># Matches the map transparency</span></span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>            <span class="at">color =</span> <span class="cn">NA</span></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>          <span class="at">order =</span> <span class="dv">1</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_manual</span>(</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"darkgreen"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"blue"</span>),</span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"True (TP)"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"False (FP)"</span>),</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>        <span class="at">breaks =</span> <span class="fu">c</span>(<span class="st">"0"</span>, <span class="st">"1"</span>),</span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>        <span class="at">drop =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>        <span class="at">guide =</span> <span class="fu">guide_legend</span>(</span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>          <span class="at">override.aes =</span> <span class="fu">list</span>(<span class="at">fill =</span> <span class="cn">NA</span>),</span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>          <span class="at">order =</span> <span class="dv">2</span></span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"MD: "</span>, md, <span class="st">"m | Buffer: "</span>, buf, <span class="st">"m"</span>), </span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"Inside of the buffer"</span>) <span class="sc">+</span></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> olten_x) <span class="sc">+</span></span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> olten_y) <span class="sc">+</span></span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_sf</span>(<span class="at">datum =</span> <span class="dv">2056</span>) <span class="sc">+</span></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>      base_theme</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>    plot_liste[[<span class="fu">paste0</span>(<span class="st">"md"</span>, md, <span class="st">"_b"</span>, buf)]] <span class="ot">&lt;-</span> p</span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot_liste, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span> </span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Strava 2 - 9 combinations of clustering and buffering around waypoints"</span>,</span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Temporal window for static events = 10 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a>  ) </span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-10s-strava2" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -959,7 +982,7 @@ Figure&nbsp;4: Visualisation of the static events of all tracks with a time wind
 <img src="index_files/figure-html/fig-10s-strava2-1.png" class="img-fluid figure-img" width="768">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-10s-strava2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;5: Visualisation of the static events (with a time window of 10 seconds) inside the buffer for different cluster distances and buffer sizes for strava 2.
+Figure&nbsp;5: Visualisation of the static events (time window of 10 seconds) inside the buffer for different cluster distances and buffer sizes for Strava 2.
 </figcaption>
 </figure>
 </div>
@@ -970,8 +993,8 @@ Figure&nbsp;5: Visualisation of the static events (with a time window of 10 seco
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># plot the combinations of clustering and buffering around waypoint</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>olten_y <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1244200</span>, <span class="dv">1245100</span>, <span class="at">by =</span> <span class="dv">200</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>olten_x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">2633200</span>, <span class="dv">2634000</span>, <span class="at">by =</span> <span class="dv">200</span>)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>wollerau_y <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">1226700</span>, <span class="dv">1227200</span>, <span class="at">by =</span> <span class="dv">200</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>wollerau_x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">2694900</span>, <span class="dv">2695700</span>, <span class="at">by =</span> <span class="dv">200</span>)</span>
 <span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>base_theme <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
 <span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(),</span>
@@ -996,34 +1019,47 @@ Figure&nbsp;5: Visualisation of the static events (with a time window of 10 seco
 <span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>() <span class="sc">+</span></span>
 <span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> <span class="fu">st_buffer</span>(wp_wollerau_clean, buf), </span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>              <span class="at">fill =</span> <span class="st">"gray70"</span>, </span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">fill =</span> <span class="st">"Waypoint Buffer Area"</span>), </span>
 <span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>              <span class="at">alpha =</span> <span class="fl">0.50</span>, </span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>              <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> filtered, </span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">as.character</span>(.data[[current_col]])), </span>
-<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>              <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_manual</span>(</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"darkgreen"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"blue"</span>),</span>
-<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"Hit (TP)"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"Outside of Buffer (FP)"</span>),</span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">drop =</span> <span class="cn">FALSE</span></span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"MD: "</span>, md, <span class="st">"m | Buffer: "</span>, buf, <span class="st">"m"</span>), </span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"Inside of the buffer"</span>) <span class="sc">+</span></span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> wollerau_x) <span class="sc">+</span></span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> wollerau_y) <span class="sc">+</span></span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_sf</span>(<span class="at">datum =</span> <span class="dv">2056</span>) <span class="sc">+</span></span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>      base_theme</span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>    plot_liste[[<span class="fu">paste0</span>(<span class="st">"md"</span>, md, <span class="st">"_b"</span>, buf)]] <span class="ot">&lt;-</span> p</span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot_liste, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span> </span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"PosmoProject 1 - 9 combinations of clustering and buffering around waypoints"</span>,</span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Temporal window for static events = 30 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"</span></span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>              <span class="at">color =</span> <span class="cn">NA</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>              <span class="at">key_glyph =</span> <span class="st">"point"</span>) <span class="sc">+</span></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>      <span class="fu">geom_sf</span>(<span class="at">data =</span> filtered, </span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>              <span class="fu">aes</span>(<span class="at">color =</span> <span class="fu">as.character</span>(.data[[current_col]])), </span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>              <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_fill_manual</span>(</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Waypoint Buffer Area"</span> <span class="ot">=</span> <span class="st">"gray70"</span>),</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">name =</span> <span class="cn">NULL</span>,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        <span class="at">guide =</span> <span class="fu">guide_legend</span>(</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>          <span class="at">override.aes =</span> <span class="fu">list</span>(</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            <span class="at">shape =</span> <span class="dv">21</span>,       <span class="co"># Filled circle shape</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>            <span class="at">size =</span> <span class="dv">4</span>,         <span class="co"># Makes the circle larger and clearer in the legend</span></span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>            <span class="at">alpha =</span> <span class="fl">0.50</span>      <span class="co"># Matches the map transparency</span></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>          ),</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>          <span class="at">order =</span> <span class="dv">1</span></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_color_manual</span>(</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>        <span class="at">values =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"darkgreen"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"blue"</span>),</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"1"</span> <span class="ot">=</span> <span class="st">"True (TP)"</span>, <span class="st">"0"</span> <span class="ot">=</span> <span class="st">"False (FP)"</span>),</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>        <span class="at">drop =</span> <span class="cn">FALSE</span></span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">+</span></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="fu">paste0</span>(<span class="st">"MD: "</span>, md, <span class="st">"m | Buffer: "</span>, buf, <span class="st">"m"</span>), </span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>           <span class="at">color =</span> <span class="st">"Inside of the buffer"</span>) <span class="sc">+</span></span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_x_continuous</span>(<span class="at">breaks =</span> wollerau_x) <span class="sc">+</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>      <span class="fu">scale_y_continuous</span>(<span class="at">breaks =</span> wollerau_y) <span class="sc">+</span></span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>      <span class="fu">coord_sf</span>(<span class="at">datum =</span> <span class="dv">2056</span>) <span class="sc">+</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>      base_theme</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>    plot_liste[[<span class="fu">paste0</span>(<span class="st">"md"</span>, md, <span class="st">"_b"</span>, buf)]] <span class="ot">&lt;-</span> p</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a><span class="fu">wrap_plots</span>(plot_liste, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span> </span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_layout</span>(<span class="at">guides =</span> <span class="st">"collect"</span>) <span class="sc">+</span> </span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot_annotation</span>(</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"PosmoProject 1 - 9 combinations of clustering and buffering around waypoints"</span>,</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Temporal window for static events = 30 seconds | Cluster-Distanz (MD) | Waypoint-Buffer (Buffer)"</span></span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output-display">
 <div id="fig-30s-posmo1" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1032,14 +1068,14 @@ Figure&nbsp;5: Visualisation of the static events (with a time window of 10 seco
 <img src="index_files/figure-html/fig-30s-posmo1-1.png" class="img-fluid figure-img" width="768">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-30s-posmo1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;6: Visualisation of the static events (with a time window of 30 seconds) inside the buffer for different cluster distances and buffer sizes for PosmoProject 1
+Figure&nbsp;6: Visualisation of the static events (time window of 30 seconds) inside the buffer for different cluster distances and buffer sizes for PosmoProject 1
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
 <p>To compare the effectiveness of using different time windows to classify static events and various clustering distances to create single stops, as well as different buffers around the waypoints, <a href="#tbl-parameters-all-prov" class="quarto-xref">Table&nbsp;1</a> compares the performance of the different parameters for all three mobile apps together. For each parameter combination, the table shows the total number of stops created (Total Stops Found), the number of stops correctly identified inside the buffer (True Positive), the number of stops identified outside of the buffer (False Positive) and the number of buffers for which no stops were detected (False Negative). Furthermore, the table shows the performance metrics precision and recall, with recall used to highlight the five best (green) and five worst (red) performances.</p>
-<p>Overall, 5 metre waypoint buffers detected the fewest stops inside the buffers and performed the worst. Waypoint buffers of 15 metres in connection with large temporal windows performed best in terms of detecting true stops and having few false stops.</p>
+<p>Overall, 5-metre waypoint buffers detected the fewest stops inside the buffers and performed the worst. Waypoint buffers of 15 metres in connection with large temporal windows performed best in terms of detecting true stops and having few false stops.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1583,7 +1619,7 @@ Table&nbsp;1: Parameter Table evaluating out of maximum 88 possible ground truth
 </figure>
 </div>
 </div>
-<p>From the precision and recall values, we can calculate the F1 score, which provides a further indication of performance. <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a> shows the F1 score for all the apps combined, while <a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a> shows the F1 scores more precisely, for each app individually. <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a> underlines the results of <a href="#tbl-parameters-all-prov" class="quarto-xref">Table&nbsp;1</a> that, for all apps combined, the 5 metre waypoint buffer performs worst, especially in connection with a 10 seconds time window to detect static events. The <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a> and <a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a> further shows that the 15 metres waypoint buffer, when used in connection with a large temporal window for static events and rather high maximal clustering distances, performs the best.</p>
+<p>From the precision and recall values, we can calculate the F1-score, which provides a further indication of performance. <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a> shows the F1-score for all the apps combined, while <a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a> shows the F1-scores more precisely, for each app individually. <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a> and <a href="#fig-F1-by-App" class="quarto-xref">8</a> underline the results of <a href="#tbl-parameters-all-prov" class="quarto-xref">Table&nbsp;1</a> that the 5-metre waypoint buffer performs worst, especially with a 10-second time window. In contrast, the best performance is achieved by combining a 15-metre buffer with a large temporal window and higher maximal clustering distances.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1604,7 +1640,7 @@ Table&nbsp;1: Parameter Table evaluating out of maximum 88 possible ground truth
 <span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"black"</span>, <span class="at">linewidth =</span> <span class="fl">0.1</span>) <span class="sc">+</span></span>
 <span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span> Window) <span class="sc">+</span></span>
 <span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"red"</span>, <span class="at">high =</span> <span class="st">"blue"</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"F1 Score across Parameters"</span>, </span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"F1-Score across Parameters"</span>, </span>
 <span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Maximal Clustering Distance (m)"</span>,</span>
 <span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Waypoint Buffer Size (m)"</span>,</span>
 <span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">fill =</span> <span class="st">"F1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -1616,13 +1652,13 @@ Table&nbsp;1: Parameter Table evaluating out of maximum 88 possible ground truth
 <img src="index_files/figure-html/fig-F1-together-1.png" class="img-fluid figure-img" width="768">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-F1-together-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;7: Visualisation of F1 score for the different parameters across all combined tracking apps.
+Figure&nbsp;7: Visualisation of F1-score for the different parameters across all combined tracking apps.
 </figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p><a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a> shows that the Strava app performs the best overall, whereas the PosmoProject app performs very badly, especially with a 10 seconds time window. This is also further highlighted in <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a>.</p>
+<p><a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a> shows that the Strava app performs the best overall, whereas the PosmoProject app performs poorly, especially within a 10-second time window. This is also further highlighted in <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a>.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
@@ -1646,7 +1682,7 @@ Figure&nbsp;7: Visualisation of F1 score for the different parameters across all
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_grid</span>(App <span class="sc">~</span> Window) <span class="sc">+</span></span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(<span class="at">low =</span> <span class="st">"red"</span>, <span class="at">high =</span> <span class="st">"blue"</span>, <span class="at">limits =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)) <span class="sc">+</span></span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"F1 Score across Parameters (by App)"</span>,</span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"F1-Score across Parameters (by App)"</span>,</span>
 <span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Maximal Clustering Distance (m)"</span>,</span>
 <span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Waypoint Buffer Size (m)"</span>,</span>
 <span id="cb10-24"><a href="#cb10-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">fill =</span> <span class="st">"F1"</span></span>
@@ -1659,7 +1695,7 @@ Figure&nbsp;7: Visualisation of F1 score for the different parameters across all
 <img src="index_files/figure-html/fig-F1-by-App-1.png" class="img-fluid figure-img" width="768">
 </div>
 <figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-F1-by-App-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Figure&nbsp;8: Visualisation of F1 score for the different parameters for all apps seperatly.
+Figure&nbsp;8: Visualisation of F1-score for the different parameters for all apps seperatly.
 </figcaption>
 </figure>
 </div>
@@ -1800,17 +1836,17 @@ Table&nbsp;2: Mean precision and recall metrics grouped by tracking application 
 </figure>
 </div>
 </div>
-<p>However, the best F1 scores for the PosmoProject and Swisstopo apps were not only achieved with the 40 seconds time window but also the 30 seconds time window and a 10 metre clustering distance (<a href="#tbl-app-best-performance" class="quarto-xref">Table&nbsp;3</a>).</p>
+<p>However, some of the best F1-scores for the PosmoProject and Swisstopo apps were achieved with the 40-second and the 30-second time window, with a 10-metre clustering distance (<a href="#tbl-app-best-performance" class="quarto-xref">Table&nbsp;3</a>).</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>app_summary <span class="ot">&lt;-</span> master_apps <span class="sc">|&gt;</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(App) <span class="sc">|&gt;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find the index of the highest F1 score for this app</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Find the index of the highest F1-score for this app</span></span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">best_idx =</span> <span class="fu">which.max</span>(F1),</span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract the highest F1 value</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract the highest F1-value</span></span>
 <span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">max_val  =</span> <span class="fu">round</span>(F1[best_idx], <span class="dv">3</span>),</span>
 <span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>    </span>
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extract the matching parameter values</span></span>
@@ -1882,7 +1918,7 @@ Table&nbsp;3: Summary of F1-Scores per tracking app, showing the best performanc
 </figure>
 </div>
 </div>
-<p>Grouping the results for the different parameters separately, it is further highlighted that the 30 and 40 seconds windows create the best F-1 scores (<a href="#tbl-best-perf-tw" class="quarto-xref">Table&nbsp;4 (a)</a>). The different clustering distances, on the other hand, seem to not have a big influence on the F1 score, whereas the buffer size of 5 metres results in significantly lower overall F1 scores, as already mentioned above (<a href="#tbl-best-perf-CD" class="quarto-xref">Table&nbsp;4 (b)</a> and <a href="#tbl-best-perf-buff" class="quarto-xref">Table&nbsp;4 (c)</a>).</p>
+<p>Grouping the results for the different parameters separately, it is further highlighted that the 30- and 40- seconds windows create the best F1 scores (<a href="#tbl-best-perf-tw" class="quarto-xref">Table&nbsp;4 (a)</a>). The different clustering distances, on the other hand, seem to not have a big influence on the F1 score, whereas the buffer size of 5 metres results in significantly lower overall F1-scores, as already mentioned above (<a href="#tbl-best-perf-CD" class="quarto-xref">Table&nbsp;4 (b)</a> and <a href="#tbl-best-perf-buff" class="quarto-xref">4 (c)</a>).</p>
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>master_apps  <span class="sc">|&gt;</span> </span>
@@ -1918,7 +1954,7 @@ Table&nbsp;4: Average performance for all the different parameters separately.
 <div id="tbl-best-perf-tw" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-subfloat-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-subfloat-caption quarto-subfloat-tbl" id="tbl-best-perf-tw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-(a) Average perfromance for each time window for segmentation.
+(a) Average performance for each time window for segmentation.
 </figcaption>
 <div aria-describedby="tbl-best-perf-tw-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -1957,7 +1993,7 @@ Table&nbsp;4: Average performance for all the different parameters separately.
 <div id="tbl-best-perf-CD" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-subfloat-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-subfloat-caption quarto-subfloat-tbl" id="tbl-best-perf-CD-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-(b) Avereage perfrormance for each clustering distance.
+(b) Average performance for each clustering distance.
 </figcaption>
 <div aria-describedby="tbl-best-perf-CD-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -1992,7 +2028,7 @@ Table&nbsp;4: Average performance for all the different parameters separately.
 <div id="tbl-best-perf-buff" class="cell quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-subfloat-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-subfloat-caption quarto-subfloat-tbl" id="tbl-best-perf-buff-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-(c) Avereage perfrormance for each waypoint buffer size.
+(c) Average performance for each waypoint buffer size.
 </figcaption>
 <div aria-describedby="tbl-best-perf-buff-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <div class="cell-output-display">
@@ -2030,15 +2066,14 @@ Table&nbsp;4: Average performance for all the different parameters separately.
 </section>
 <section id="discussion" class="level2">
 <h2 class="anchored" data-anchor-id="discussion">Discussion</h2>
-<p>The results of the analysis are based on F1 scores. This metric was chosen because it incorporates all three of our analysis parameters TP, FP, and FN. The F1 score is calculated using the precision and recall metrics. The closer the parameter values are to 1, the more accurate is the method. The F1 score combines these two parameters to produce a value between 0 and 1. Thus, the closer the F1 score value is to 1, the more accurate the method. At first glance, the stop detection method used appears to produce high F1 scores, though there are a few exceptions.</p>
-<p>In <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a>, the low F1 score indicates that the 5 meter buffer is not an ideal choice for detecting stops within a certain area. This is because the stops usually cover a “large” area and the exercises require a somewhat larger radius, which may not be captured by such a small buffer. Similarly, GPS inaccuracies for stop detection may have a greater impact, because the potential overlap is smaller for smaller waypoint buffers. This negative behaviour of the 5 metre buffer is also evident in <a href="#tbl-best-perf-buff" class="quarto-xref">Table&nbsp;4 (c)</a>. The results further show that the performance (F1 scores) is significantly lower for 10 second intervals. However, this is most likely due to the poor performance of the PosmoProject app at this interval (<a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a>). The PosmoProject app produces very low performance metric values at short time intervals. Even at 20-second intervals, the values are still not outstanding. This is a weakness of the chosen methodology, since on average, PosmoProject provides a GPS fix every 15 seconds and there are not enough neighbours within the 10 second interval to identify static points. This results in a large number of NA mean spatial distance values. Even at 20 second intervals, some NA mean spatial distance values remain, since, on average, only one to two neighbours are detected within that time window. Even with 40-second intervals, there is an average of only 3 neighbours. Strava and Swisstopo, on the other hand, send a signal every second, which means that in a 10 second interval, the mean spatial distance is already calculated from ten neighbours.</p>
-<p>Instead of calculating the mean spatial distances, we initially tried using linear interpolation to standardise the time intervals across apps. However, with long signal intervals, such as in the PosmoProject, interpolation can lead to inaccurate coordinate shifts. This approach was initially tried but it proved to be a major limitation. Consequently, the PosmoProject results, which record fixes at roughly 15 second intervals, should be interpreted with caution. They may even be meaningless in some cases, especially when a time interval contains an average of 0 to 1 data points.</p>
-<p><a href="#tbl-parameters-all-prov" class="quarto-xref">Table&nbsp;1</a> shows that both precision and recall improve with a longer time interval. <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a> also reveals the impact of the app, showing that PosmoProject has a significantly negative effect on recall values. This means that at 10 second intervals, the identification of all 15 existing waypoint buffers in Wollerau is very inaccurate due to the NA values. In this study, not only do bad recall values have a negative impact on the F1 score, but also low precision values. In <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a>, Swisstopo yields lower F1 scores at shorter time intervals. Recall remains equally good across time intervals, but precision varies. The smaller the time interval, the lower the F1 score, as fewer neighbours are available to determine correct stops and the risk of identifying incorrect stops increases. This is not only the case for Swisstopo, but is rather consistent, regardless of the app (<a href="#tbl-best-perf-tw" class="quarto-xref">Table&nbsp;4 (a)</a>).</p>
-<p>Furthermore, it is particularly interesting that the waypoints were created using Swisstopo, which also has the same sampling interval as Strava, yet Strava delivers better F1-scores than Swisstopo (<a href="#tbl-app-best-performance" class="quarto-xref">Table&nbsp;3</a>). Strava even manages to achieve a perfect F1 score of 1 in 20 different combinations. In contrast, neither PosmoProject nor Swisstopo ever reach 1, however, the best value for Swisstopo is 0.966, which is very close. Since Strava was the only app used in Olten, it is possible that the running behaviour in Olten was more suitable for the segmentation method. For example, longer breaks were taken during stops or no interruptions occurred during the run or perhaps the app just performs better. Since both Vitaparcours are mostly in forested areas, this should not have a significant influence on comparisons between the two tracks. The only parameter that makes hardly any difference to the results in <a href="#tbl-best-perf-CD" class="quarto-xref">Table&nbsp;4 (b)</a> is the cluster selection. This is because static data points are either very close to each other or far apart. For the cluster size to make a difference, the selection would have to be taken to an even more extreme.</p>
+<p>The following analysis relies on F1-scores, as this metric incorporates TP, FP, and FN by combining precision and recall. In <a href="#fig-F1-together" class="quarto-xref">Figure&nbsp;7</a>, the low F1-score indicates that the 5 meter buffer is not an ideal choice for detecting stops within a certain area. This occurs because stops usually cover a wide area and exercises require a larger radius, which may not be captured by such a small buffer. Similarly, GPS inaccuracies for stop detection may be more sensitive for smaller buffers. This negative behaviour of the 5 metre buffer is also evident in <a href="#tbl-best-perf-buff" class="quarto-xref">Table&nbsp;4 (c)</a>. The results further show that the performance (F1-scores) is significantly lower for 10-second intervals. However, this is most likely due to the poor performance of the PosmoProject app at this interval (<a href="#fig-F1-by-App" class="quarto-xref">Figure&nbsp;8</a>). The PosmoProject app produces very low performance metric values at short time intervals. This is a weakness of the chosen methodology, since on average, PosmoProject provides a GPS fix every 15 seconds and there are not enough neighbours within the 10-second interval to identify static points. This results in a large number of NA mean spatial distance values. Even at 20-second intervals, some NA mean spatial distance values remain, since on average only 1 to 2 neighbours are detected within 20 seconds. Even with 40-second intervals, there is an average of only 3 neighbours. Strava and Swisstopo, on the other hand, send a signal every 1 to 2 seconds, which means that in a 10-second interval, the mean spatial distance is already calculated from ten neighbours.</p>
+<p>Instead of calculating the mean spatial distances, we initially tried using linear interpolation to standardise the time intervals across apps. However, with long signal intervals, such as in the PosmoProject, interpolation can lead to inaccurate coordinate shifts. This approach was initially tried but it proved to be a major limitation. Consequently, the PosmoProject results, which record fixes at roughly 15-second intervals, should be interpreted with caution. They may even be meaningless in some cases, especially when a time interval contains an average of 0 to 1 data points.</p>
+<p><a href="#tbl-parameters-all-prov" class="quarto-xref">Table&nbsp;1</a> shows that both precision and recall improve with a longer time interval. <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a> also reveals the impact of the app, showing that PosmoProject has a significantly negative effect on recall values. This means that at 10-second intervals, the identification of all 15 existing waypoint buffers in Wollerau is very inaccurate due to the NA values. In this study, not only do bad recall values have a negative impact on the F1-score, but also low precision values. In <a href="#tbl-app-performance" class="quarto-xref">Table&nbsp;2</a>, Swisstopo yields lower F1-scores at shorter time intervals. Recall remains equally good across time intervals, but precision varies. The smaller the time interval, the lower the F1-score, as fewer neighbours are available to determine correct stops and the risk of identifying incorrect stops increases. This is not only the case for Swisstopo, but is rather consistent, regardless of the app (<a href="#tbl-best-perf-tw" class="quarto-xref">Table&nbsp;4 (a)</a>).</p>
+<p>Furthermore, it is interesting that the waypoints were created using Swisstopo, yet Strava delivers better F1-scores than Swisstopo (<a href="#tbl-app-best-performance" class="quarto-xref">Table&nbsp;3</a>). Strava even manages to achieve a perfect F1-score of 1 in 20 different combinations. In contrast, neither PosmoProject nor Swisstopo ever reach 1, however, the best value for Swisstopo is 0.966, which is very close. Since Strava was the only app used in Olten, it is possible that the running behaviour in Olten was more suitable for the segmentation method. For example, longer breaks were taken during stops or no interruptions occurred during the run or perhaps the app just performs better. Since both Vitaparcours are mostly in forested areas, this should not have a significant influence on comparisons between the two tracks. The only parameter that makes hardly any difference to the results in <a href="#tbl-best-perf-CD" class="quarto-xref">Table&nbsp;4 (b)</a> is the cluster selection. This is because static data points are either very close to each other or far apart, so that only extreme cluster sizes can make a difference.</p>
 </section>
 <section id="conclusion" class="level2">
 <h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
-<p>The analysis of the results was generated using precision, recall and F1 scores. Several distinct patterns are evident. The buffer radius around the waypoints should not be too small, as otherwise, GPS inaccuracies will have a significant impact. Therefore, a buffer radius of 5 metres is not suitable to compare stops generated from static events with ground truth points. Clusters, on the other hand, are resilient to changes in size, as long as rather small values below 15 metres are chosen, since error points are either very close together or very far apart. The chosen method of calculating mean spatial distance values from neighbours at different time intervals ensures that longer time intervals, such as 30 or 40 seconds, yield more accurate results, since more neighbours are included in the calculation and a comparison between different sampling intervals can be guaranteed. However, this has negative consequences for the PosmoProject data, since at short intervals, such as 10 seconds, there are not enough neighbours to perform a calculation within that interval. Overall, stop detection could be performed with all three different apps and Strava shows the best performance in connection with F1 scores, followed by Swisstopo.</p>
+<p>The analysis of the results was generated using precision, recall and F1-scores. Several distinct patterns are evident. The buffer radius around the waypoints should not be too small, as GPS inaccuracies will have a significant impact. Therefore, a buffer radius of 5 metres is not suitable to compare stops generated from static events with ground truth points. Clusters, on the other hand, are resilient to changes in size, as long as rather small values below 15 metres are chosen, since error points are either very close together or very far apart. The method of calculating mean spatial distance values from neighbours at different time intervals ensures that longer time intervals, such as 30 or 40 seconds, yield more accurate results, since more neighbours are included in the calculation and a comparison between different sampling intervals can be guaranteed. However, this has negative consequences for the PosmoProject data, since at short intervals, such as 10-second, there are not enough neighbours to perform a calculation within that interval. Overall, stop detection could be performed with all three different apps and Strava shows the best performance in connection with F1-scores, followed by Swisstopo.</p>
 </section>
 <section id="appendix" class="level2">
 <h2 class="anchored" data-anchor-id="appendix">Appendix</h2>
@@ -2068,7 +2103,7 @@ Table&nbsp;4: Average performance for all the different parameters separately.
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>wordcountaddin<span class="sc">::</span><span class="fu">word_count</span>(<span class="st">"index.qmd"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code>[1] 2803</code></pre>
+<pre><code>[1] 2574</code></pre>
 </div>
 </div>
 

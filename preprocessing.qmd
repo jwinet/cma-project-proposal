@@ -1,3 +1,12 @@
+---
+title: "Stop Detection in Vitaparcours Movement Data Preprocessing Code"
+author: "Judith Winet and Rodrigo Nogueira Silva"
+format: html
+---
+
+```{r Instaling packages}
+#| eval: false
+
 library("leaflet")
 library("readr")
 library("sf")
@@ -6,6 +15,10 @@ library("lubridate")
 library("zoo")
 library("purrr")
 library("stringr")
+```
+
+```{r Loading data and making it comparable}
+#| eval: false
 
 # Vitaparcours Data created: 04.06.2026
 
@@ -150,6 +163,10 @@ wp_wollerau_clean <- save_spatial_gpkg(wp_wollerau, "Waypoints_Wollerau")
 Posmo_1_clean     <- save_spatial_gpkg(Posmo_1, "Posmo_1_Wollerau")
 Posmo_2_clean     <- save_spatial_gpkg(Posmo_2, "Posmo_2_Wollerau")
 
+```
+
+```{r Extracting Static Events}
+#| eval: false
 
 # Extract Static Events Using a Mean Temporal Window Distance
 
@@ -231,7 +248,8 @@ for (w in windows) {
     processed_data <- classify_temporal_static(datasets[[name]], time_col = "time", window = w)
     
     # Strip columns that are 100% NA
-    processed_data <- processed_data %>% select(where(~ !all(is.na(.))))
+    processed_data <- processed_data |>
+      select(where(~ !all(is.na(.))))
     
     # Set up path specifically to datasets/cleaned/static
     output_path <- file.path("datasets", "cleaned", "static", paste0(output_name, ".gpkg"))
@@ -249,3 +267,5 @@ for (w in windows) {
     assign(output_name, processed_data, envir = .GlobalEnv)
   }
 }
+```
+
